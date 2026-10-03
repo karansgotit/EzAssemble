@@ -1,0 +1,4 @@
+export function Icon({name,size=20}: {name:string;size?:number}) {
+  const paths:Record<string,string>={arrow:'M5 12h14m-6-6 6 6-6 6',back:'M19 12H5m6-6-6 6 6 6',replay:'M3 10a9 9 0 1 1 2 8M3 4v6h6',play:'m8 5 11 7-11 7Z',pause:'M8 5v14M16 5v14',expand:'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5',cube:'m12 3 9 5v9l-9 5-9-5V8Zm0 9L3 8m9 4 9-4m-9 4v10',book:'M12 5C8 2 4 3 2 4v15c4-2 7-1 10 1m0-15c4-3 8-2 10-1v15c-4-2-7-1-10 1Zm0 0v15',check:'m5 12 4 4L19 6',reset:'M3 9V3m0 6h6M3 9a9 9 0 1 1 0 7',alert:'m12 3 10 18H2ZM12 9v5m0 3v.1',settings:'M4 7h16M4 17h16M8 4v6m8 4v6',close:'m6 6 12 12M6 18 18 6'};
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill={name==='play'?'currentColor':'none'} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]??paths.cube}/></svg>;
+}
