@@ -225,3 +225,14 @@
 .saveError {
   color: #b00020;
 }
+
+.devNote {
+  flex-basis: 100%;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed #111111;
+  border-radius: 0.375rem;
+  background: #ffdb00;
+  color: #111111;
+  font-size: 0.875rem;
+}
