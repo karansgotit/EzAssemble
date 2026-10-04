@@ -4,7 +4,8 @@ import ts from "typescript";
 import { expect, it } from "vitest";
 
 const root = new URL("../", import.meta.url);
-const read = (file: string) => readFileSync(fileURLToPath(new URL(file, root)), "utf8");
+// Windows checkouts have CRLF line endings; compare as if every file used LF.
+const read = (file: string) => readFileSync(fileURLToPath(new URL(file, root)), "utf8").replace(/\r\n/g, "\n");
 const printer = ts.createPrinter({ removeComments: true });
 
 function declarations(source: string): Map<string, string> {
