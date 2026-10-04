@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type ComponentType, type ReactNode, useReducer, useRef, useState } from "react";
+import { type ComponentType, type ReactNode, useEffect, useReducer, useRef, useState } from "react";
 import { ConfidenceBanner } from "./ConfidenceBanner";
 import { DiagramPanel } from "./DiagramPanel";
 import { PartsTray } from "./PartsTray";
@@ -30,6 +30,13 @@ export function StepPlayer({ manual, mode, back, Scene = AssemblyScene }: Props)
   const [showTrap, setShowTrap] = useState(() => first !== undefined && shouldAutoplayTrap(first, new Set()));
   const [sceneKey, setSceneKey] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  // The 3D view reads its colours once, when it mounts. A theme change remounts it so it picks up the new ones.
+  useEffect(() => {
+    const onTheme = () => setSceneKey((key) => key + 1);
+    window.addEventListener("ezassemble:theme", onTheme);
+    return () => window.removeEventListener("ezassemble:theme", onTheme);
+  }, []);
 
   const index = clampStepIndex(state.stepIndex, total);
   const step = manual.steps[index];

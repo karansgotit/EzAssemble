@@ -78,8 +78,57 @@
   --control-height-lg: 56px; /* previous, next and play: reachable without aiming */
   --page-max: 88rem;
 
+  --color-accent-strong: #1b38b8; /* the accent, pressed or hovered */
+
+  /* Paper: the manual's drawings are black on white, so the sheet they sit on stays white in both themes. */
+  --color-paper: #ffffff;
+  --color-paper-ink: #14161a;
+  --color-paper-muted: #5a6068;
+
   --color-text: var(--color-ink); /* old name, still used by the dev pages */
+  color-scheme: light;
 }
+
+/* Dark theme. Light is the default; dark applies only when chosen with the switch (app/components/ThemeToggle.tsx). */
+:root[data-theme="dark"] {
+  --color-bg: #121418;
+  --color-surface: #1d2025;
+  --color-ink: #f1f2ee;
+  --color-muted: #a4aab2;
+  --color-line: #353941;
+  --color-line-strong: #f1f2ee;
+  --color-accent: #8298ff;
+  --color-accent-ink: #0c1024;
+  --color-accent-soft: #262d4d;
+  --color-accent-strong: #a9b8ff;
+
+  --color-warn: #f2c968;
+  --color-warn-soft: #382d12;
+  --color-warn-line: #7c601d;
+  --color-wrong: #ff8f7a;
+  --color-wrong-soft: #3f1e19;
+  --color-right: #62d39a;
+  --color-right-soft: #17362a;
+
+  /* The 3D view at night: the parts stay light, like paper under a lamp, on a dark floor. */
+  --scene-bg: #191b20;
+  --scene-floor: #24272d;
+  --scene-part: #e8e9ec;
+  --scene-part-edge: #6f757e;
+  --scene-current: #8fa3ff;
+  --scene-current-edge: #0b0c0f;
+  --scene-guide: #8298ff;
+  --scene-wood: #c9a878;
+  --scene-steel: #a3aab3;
+  --scene-hole: #1c1e23;
+  --scene-wrong: #ff6f5a;
+  --scene-right: #48c486;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
 
 *,
 *::before,
@@ -159,7 +208,8 @@ img {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1b38b8;
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
 }
 
 .btn-primary:disabled {

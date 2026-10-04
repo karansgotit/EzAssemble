@@ -11,6 +11,7 @@
 
 /* Top line: the way out, the manual, and where you are in it. */
 .top {
+  padding-right: 3.25rem; /* room for the theme button in the corner */
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -150,6 +151,17 @@
   gap: var(--space-2);
   flex: 1;
   min-height: 0;
+}
+
+/* The drawing's sheet stays white in both themes: the manual is printed black on white. */
+.sheet {
+  background: var(--color-paper);
+  color: var(--color-paper-ink);
+}
+
+.sheet :global(.eyebrow),
+.sheetMissing {
+  color: var(--color-paper-muted);
 }
 
 .sheet img {

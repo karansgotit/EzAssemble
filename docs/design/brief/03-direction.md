@@ -47,7 +47,7 @@ Three colours are reserved by meaning and never used for anything else:
 
 Why blue and nothing else: red, green and amber are spoken for by meaning, so blue is the only hue family left that can say "this step's piece" without colliding, and it stays distinct for colour-blind viewers. Never set it against yellow; that pairing belongs to IKEA.
 
-No gradients, no tints of the accent as backgrounds for large areas, no dark mode.
+No gradients, no tints of the accent as backgrounds for large areas. A dark theme was added later (Smit's call): the same tokens with dark values, drawings kept on white paper.
 
 ## Type
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next, Schibsted_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
+import { themeBootScript } from "./components/themeBoot";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { FakeDataBadge } from "./dev/FakeDataBadge";
 import "./globals.css";
 
@@ -19,8 +21,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+    // The theme is set by a script before the first paint, so the server's markup can't know it.
+    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body>
+        <ThemeToggle />
         {children}
         {process.env.NODE_ENV === "development" && <FakeDataBadge />}
       </body>
