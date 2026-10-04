@@ -4,11 +4,11 @@ import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, type ComponentRef, type RefObject } from "react";
 import { PerspectiveCamera, Vector3 } from "three";
-import type { Bounds } from "./geometry";
+import { fitDistance, type Bounds } from "./geometry";
 import type { Vec3 } from "./types";
 
 const GLIDE_SECONDS = 0.6;
-const MARGIN = 1.4;
+const MARGIN = 1.18; // air around the framed parts
 const MIN_DISTANCE_CM = 45;
 // Front-left-above, like the manual's drawings; lower and more head-on once the unit stands.
 const VIEW_LYING: Vec3 = [-0.6, 1, 1.2];
@@ -41,11 +41,12 @@ export function CameraRig({ bounds, frameKey, standing, lookAt }: CameraRigProps
   useEffect(() => {
     const { min, max } = latest.current;
     const toTarget = new Vector3(...min).add(new Vector3(...max)).multiplyScalar(0.5);
-    const radius = new Vector3(...max).sub(new Vector3(...min)).length() / 2;
     const vertical = ((camera instanceof PerspectiveCamera ? camera.fov : 30) * Math.PI) / 180;
-    const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * (size.width / Math.max(1, size.height)));
-    const distance = Math.max(MIN_DISTANCE_CM, (radius / Math.sin(Math.min(vertical, horizontal) / 2)) * MARGIN);
-    const view = new Vector3(...(standing ? VIEW_STANDING : VIEW_LYING)).normalize();
+    const direction = standing ? VIEW_STANDING : VIEW_LYING;
+    // Fit the parts to the picture as seen from this direction, so every step fills it alike.
+    const fitted = fitDistance(latest.current, direction, vertical, size.width / Math.max(1, size.height));
+    const distance = Math.max(MIN_DISTANCE_CM, fitted * MARGIN);
+    const view = new Vector3(...direction).normalize();
     const fromTarget = lookAt.current?.clone() ?? toTarget.clone();
     controls.current?.target.copy(fromTarget);
     glide.current = {

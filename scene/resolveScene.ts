@@ -1,4 +1,4 @@
-import { HARDWARE_SCALE, SCREW_TURNS } from "./constants";
+import { SCREW_TURNS, hardwareScaleFor } from "./constants";
 import { implicitTargetId } from "@/schema/placement";
 import {
   FACE_NORMALS, NO_ROTATION, add, alongNormal, boundsOf, faceRect, flipRotation, jointStrip,
@@ -71,7 +71,7 @@ export function assemblyBounds(state: SceneState, manual: SceneManual): Bounds {
 
 // Pure and never throws: replays steps 0..upToStep and returns where every piece is afterwards.
 // An action it cannot make sense of is skipped and explained in `warnings`.
-export function resolveScene(manual: SceneManual, upToStep: number, hardwareScale = HARDWARE_SCALE): SceneState {
+export function resolveScene(manual: SceneManual, upToStep: number, hardwareScale = hardwareScaleFor(manual?.buildSizeCm)): SceneState {
   const partList = Array.isArray(manual?.parts) ? manual.parts.filter((p) => p && typeof p.id === "string") : [];
   const parts = new Map(partList.map((p) => [p.id, p]));
   const used = new Map<string, number>();

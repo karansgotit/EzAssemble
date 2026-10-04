@@ -31,6 +31,7 @@ export interface AssemblySceneProps {
   onDone: () => void;
 }
 
+const REST: Pose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], spin: 0, opacity: 1 };
 const MAX_FRAME_SECONDS = 0.1; // a background tab must not make the animation jump
 const REPORT_EVERY_SECONDS = 0.03;
 
@@ -119,7 +120,14 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
 
   // The floor and shadow follow the build box; assemblyBounds falls back if that size is unusable.
   const [length, , width] = assemblyBounds(resolveScene(manual, -1), manual).max;
-  const still: Pose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], spin: 0, opacity: 1 };
+  // One pose object per resting piece, kept between frames so unmoved pieces are not redrawn.
+  const restPoses = useMemo(() => {
+    const poses = new Map<string, Pose>();
+    for (const piece of after.placed.values()) {
+      poses.set(piece.id, { position: piece.position, quaternion: piece.quaternion, spin: piece.spin, opacity: 1 });
+    }
+    return poses;
+  }, [after]);
 
   return (
     <SceneColorsContext.Provider value={colors}>
@@ -135,7 +143,7 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
             <PartMesh
               key={piece.id}
               piece={piece}
-              pose={poses.get(piece.id) ?? { ...still, position: piece.position, quaternion: piece.quaternion, spin: piece.spin }}
+              pose={poses.get(piece.id) ?? restPoses.get(piece.id) ?? REST}
               current={current.has(piece.id)}
               features={features.get(piece.partId)}
             />

@@ -8,6 +8,7 @@ export interface Box extends Extent {
   rawHi: number[];
   thin: number; // axis of the board thickness, or -1 for legs and other blocks
   fixed: boolean; // thin axis already pinned flush to the product box
+  held?: boolean[]; // per axis: already placed exactly (a stacked block), leave it alone
   root: string; // label without numbering: "Shelf 1" and "Shelf 2" share "shelf"
 }
 
@@ -32,6 +33,17 @@ export function groupsOf(boxes: Box[]): Box[][] {
   for (const b of boxes) {
     if (b.thin < 0) continue;
     const key = `${b.root}|${b.thin}`;
+    groups.set(key, [...(groups.get(key) ?? []), b]);
+  }
+  return [...groups.values()];
+}
+
+// Blocks (legs, drawers) that are the same kind of part: Leg 1–4, Drawer 1–2.
+export function blockGroupsOf(boxes: Box[]): Box[][] {
+  const groups = new Map<string, Box[]>();
+  for (const b of boxes) {
+    if (b.thin >= 0) continue;
+    const key = `${b.part.kind}|${b.root}`;
     groups.set(key, [...(groups.get(key) ?? []), b]);
   }
   return [...groups.values()];
@@ -132,8 +144,53 @@ export function spaceEvenly(boxes: Box[], size: Vec3, snapFrac: number): boolean
   return moved;
 }
 
-// The plane an end face should stop at: the first box side or perpendicular board it would run
-// into going outward from the part's centre, provided the rough layout put the face near it.
+// Identical blocks stacked along an axis (drawers one above another) share the space between
+// the boards or box sides around them. If their rough sizes about fill that space they are
+// packed edge to edge in equal parts; if not, they keep their size and get equal gaps.
+export function stackBlocks(boxes: Box[], size: Vec3, snapFrac: number, alike: (group: Box[]) => boolean): void {
+  for (const group of blockGroupsOf(boxes)) {
+    if (group.length < 2 || !alike(group)) continue;
+    for (const a of AXES) {
+      const tol = snapFrac * size[a];
+      const sorted = [...group].sort((p, q) => rawMid(p, a) - rawMid(q, a));
+      const levels: Box[][] = [];
+      for (const b of sorted) {
+        const level = levels[levels.length - 1];
+        if (level && rawMid(b, a) - rawMid(level[level.length - 1], a) <= tol) level.push(b);
+        else levels.push([b]);
+      }
+      if (levels.length < 2) continue;
+      const length = sorted[0].hi[a] - sorted[0].lo[a];
+      let lower = 0;
+      let upper = size[a];
+      for (const q of boxes) {
+        if (q.thin !== a || !group.some((b) => AXES.every((i) => i === a || overlap(b, q, i) > 0))) continue;
+        if (mid(q, a) < rawMid(sorted[0], a)) lower = Math.max(lower, q.hi[a]);
+        if (mid(q, a) > rawMid(sorted[sorted.length - 1], a)) upper = Math.min(upper, q.lo[a]);
+      }
+      const span = upper - lower;
+      const fill = (levels.length * length) / span;
+      if (span <= 0 || fill > 1.15) continue;
+      const packed = fill >= 0.85;
+      const each = packed ? span / levels.length : length;
+      const gap = packed ? 0 : (span - levels.length * length) / (levels.length + 1);
+      const starts = levels.map((_, i) => lower + gap * (i + 1) + each * i);
+      const fits = levels.every((level, i) => level.every((b) => Math.abs(starts[i] + each / 2 - rawMid(b, a)) <= tol));
+      if (!fits) continue;
+      levels.forEach((level, i) => {
+        for (const b of level) {
+          b.lo[a] = starts[i];
+          b.hi[a] = starts[i] + each;
+          (b.held ??= [false, false, false])[a] = true;
+        }
+      });
+    }
+  }
+}
+
+// The plane an end face should stop at: the first box side, perpendicular board or block (leg,
+// drawer) it would run into going outward from the part's centre, provided the rough layout
+// put the face near it.
 function wallFor(p: Box, a: number, high: boolean, boxes: Box[], size: Vec3, snapFrac: number, corners: Corners) {
   const tol = snapFrac * size[a];
   const raw = high ? p.rawHi[a] : p.rawLo[a];
@@ -141,11 +198,15 @@ function wallFor(p: Box, a: number, high: boolean, boxes: Box[], size: Vec3, sna
   const side = high ? size[a] : 0;
   if (Math.abs(side - raw) <= tol) planes.push(side);
   for (const q of boxes) {
-    if (q === p || q.thin !== a || corners.passes.has(pairKey(p, q))) continue;
+    // A board is a wall only across its thickness; a block is solid on every side.
+    if (q === p || (q.thin >= 0 && q.thin !== a) || corners.passes.has(pairKey(p, q))) continue;
     if (high ? mid(q, a) <= rawMid(p, a) : mid(q, a) >= rawMid(p, a)) continue;
     const plane = high ? q.lo[a] : q.hi[a];
     if (Math.abs(plane - raw) > tol) continue;
-    const inTheWay = corners.stops.has(pairKey(p, q)) || AXES.every((i) => i === a || overlap(p, q, i) > 0);
+    // A block is tested against a board as if the board already reached its full length: the
+    // board's ends are settled after the blocks, and may still be short of the leg under them.
+    const reach = (i: number): number => (p.thin < 0 && q.thin >= 0 ? snapFrac * size[i] : 0);
+    const inTheWay = corners.stops.has(pairKey(p, q)) || AXES.every((i) => i === a || overlap(p, q, i) > -reach(i));
     if (inTheWay) planes.push(plane);
   }
   if (planes.length === 0) return undefined;
@@ -153,19 +214,25 @@ function wallFor(p: Box, a: number, high: boolean, boxes: Box[], size: Vec3, sna
 }
 
 // Steps 3 and 4 for every face that is not a board's thickness: flush to the box, or butted
-// against the board it runs into. Faces move on their own, so this also fixes the part's size.
+// against what it runs into. A board's ends move on their own, which also fixes its length. A
+// block held on one side only is slid there whole, keeping its size.
 export function snapFaces(boxes: Box[], size: Vec3, snapFrac: number, corners: Corners): boolean {
   let moved = false;
-  for (const p of boxes) {
+  // Blocks first: a leg stops at the table top before the top looks for what stops it, so a
+  // leg that the rough layout pushed into the top is never mistaken for a wall across it.
+  const blocksFirst = [...boxes].sort((p, q) => Number(p.thin >= 0) - Number(q.thin >= 0));
+  for (const p of blocksFirst) {
     for (const a of AXES) {
-      if (a === p.thin) continue;
-      for (const high of [false, true]) {
-        const target = wallFor(p, a, high, boxes, size, snapFrac, corners);
-        const face = high ? p.hi : p.lo;
-        if (target === undefined || Math.abs(face[a] - target) <= EPS) continue;
-        face[a] = target;
-        moved = true;
-      }
+      if (a === p.thin || p.held?.[a]) continue;
+      const low = wallFor(p, a, false, boxes, size, snapFrac, corners);
+      const high = wallFor(p, a, true, boxes, size, snapFrac, corners);
+      const length = p.hi[a] - p.lo[a];
+      const slide = p.thin < 0 && (low === undefined) !== (high === undefined);
+      const lo = low ?? (slide && high !== undefined ? high - length : p.lo[a]);
+      const hi = high ?? (slide && low !== undefined ? low + length : p.hi[a]);
+      if (Math.abs(lo - p.lo[a]) > EPS || Math.abs(hi - p.hi[a]) > EPS) moved = true;
+      p.lo[a] = lo;
+      p.hi[a] = hi;
       if (p.hi[a] - p.lo[a] <= EPS) {
         p.lo[a] = p.rawLo[a];
         p.hi[a] = p.rawHi[a];

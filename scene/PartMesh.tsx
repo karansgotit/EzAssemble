@@ -1,6 +1,7 @@
 "use client";
 
 import { Edges } from "@react-three/drei";
+import { memo } from "react";
 import { EDGE_WIDTH, type SceneColors } from "./constants";
 import { FeatureMarker } from "./FeatureMarker";
 import { NO_ROTATION, cylinderIn, turnOnto } from "./geometry";
@@ -19,8 +20,12 @@ function fillOf(piece: Placed, current: boolean, colors: SceneColors): string {
   return current ? colors.current : colors.previous;
 }
 
-// One piece: a box or cylinder with drawn edges, at the pose it has this frame.
-export function PartMesh({ piece, pose, current, features = [] }: { piece: Placed; pose: Pose; current: boolean; features?: Feature[] }) {
+const NO_FEATURES: Feature[] = [];
+
+// One piece: a box or cylinder with drawn edges, at the pose it has this frame. Memoised: a
+// big manual has hundreds of pieces and only this step's few move, so the rest are not
+// redrawn by React on every frame.
+export const PartMesh = memo(function PartMesh({ piece, pose, current, features = NO_FEATURES }: { piece: Placed; pose: Pose; current: boolean; features?: Feature[] }) {
   const colors = useSceneColors();
   const hardware = HARDWARE_KINDS.includes(piece.kind);
   const box = piece.shape === "box" && !hardware;
@@ -66,4 +71,4 @@ export function PartMesh({ piece, pose, current, features = [] }: { piece: Place
       {box && features.length > 0 && <FeatureMarker size={piece.size} features={features} opacity={pose.opacity} />}
     </group>
   );
-}
+});
