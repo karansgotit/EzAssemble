@@ -38,6 +38,13 @@ describe("boxToPixelRect", () => {
     expect(padded.y + padded.height).toBeGreaterThan(tight.y + tight.height);
   });
 
+  it("includes the full step-13 overview when its predicted edge is slightly too tight", () => {
+    const rect = boxToPixelRect([501, 68, 924, 856], 1132, 1600);
+    // The overview starts around y=799 on the source page, above the tight box.
+    expect(rect.y).toBeLessThan(799);
+    expect(rect.y + rect.height).toBeGreaterThan(1468);
+  });
+
   it("reorders a reversed box", () => {
     expect(boxToPixelRect([750, 900, 250, 100], 1000, 2000, 0)).toEqual(boxToPixelRect([250, 100, 750, 900], 1000, 2000, 0));
   });
