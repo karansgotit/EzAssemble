@@ -15,6 +15,7 @@ import { PartMesh } from "./PartMesh";
 import { ASSEMBLY_ID, assemblyBounds, resolveScene, type AssemblyPose } from "./resolveScene";
 import { buildTracks, sample, type Pose } from "./tracks";
 import type { Feature, SceneManual } from "./types";
+import { warnOnce } from "./warnOnce";
 
 // docs/CONTRACTS.md §7. The player loads this with next/dynamic and ssr: false.
 export interface AssemblySceneProps {
@@ -48,15 +49,15 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
   }, [manual, stepIndex]);
 
   useEffect(() => {
-    for (const warning of after.warnings) console.warn(`[scene] ${warning}`);
-  }, [after]);
+    for (const warning of after.warnings) warnOnce(`${manual.id}: ${warning}`);
+  }, [after, manual.id]);
 
-  const step = manual.steps[stepIndex];
+  const step = Array.isArray(manual.steps) ? manual.steps[stepIndex] : undefined;
   const trapPiece = step?.trap ? [...after.placed.values()].find((p) => p.partId === step.trap?.part && p.shape === "box") : undefined;
   // The ghost plays first; the step's own motion starts when it has faded.
   const trapSeconds = showTrap && trapPiece ? TRAP_SECONDS : 0;
   const duration = trapSeconds + totalDuration;
-  const features = useMemo(() => new Map<string, Feature[]>(manual.parts.map((p) => [p.id, p.features ?? []])), [manual]);
+  const features = useMemo(() => new Map<string, Feature[]>((Array.isArray(manual.parts) ? manual.parts : []).map((p) => [p.id, p.features ?? []])), [manual]);
 
   const clock = useRef(0);
   const finished = useRef(false);
@@ -115,7 +116,8 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
     return boundsOf(boxes, assemblyBounds(after, manual));
   }, [after, flipping, manual, stepIndex, tracks]);
 
-  const [length, , width] = manual.buildSizeCm;
+  // The floor and shadow follow the build box; assemblyBounds falls back if that size is unusable.
+  const [length, , width] = assemblyBounds(resolveScene(manual, -1), manual).max;
   const still: Pose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], spin: 0, opacity: 1 };
 
   return (
