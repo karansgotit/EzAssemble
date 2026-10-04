@@ -18,12 +18,40 @@ function fakeModel(answers: unknown[]) {
 }
 
 beforeEach(() => {
+  vi.stubEnv("DEBUG_AI_PARTS", "");
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("partsLayout", () => {
+  it("does not log model payloads by default", async () => {
+    await partsLayout(request, { generate: fakeModel([layout]).generate });
+    expect(vi.mocked(console.log).mock.calls.some(args => String(args[0]).startsWith("[ai:parts:"))).toBe(false);
+  });
+
+  it("logs rejected output and the final result when enabled, without request images", async () => {
+    vi.stubEnv("DEBUG_AI_PARTS", "1");
+    const onRejected = vi.fn();
+    await partsLayout(request, { generate: fakeModel([{ bad: true }, layout]).generate, onRejected });
+    const logs = vi.mocked(console.log).mock.calls.filter(args => String(args[0]).startsWith("[ai:parts:"));
+    expect(logs).toHaveLength(2);
+    expect(logs[0][0]).toContain("rejected");
+    expect(JSON.parse(String(logs[0][1]))).toMatchObject({ attempt: 1, answer: '{"bad":true}', truncated: false });
+    expect(JSON.parse(String(logs[1][1]))).toMatchObject({ ok: true, attempts: 2, data: layout });
+    expect(logs[0][0].split("]")[0]).toBe(logs[1][0].split("]")[0]);
+    expect(JSON.stringify(logs)).not.toContain("COVER");
+    expect(onRejected).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not expose raw SDK error details in debug logs", async () => {
+    vi.stubEnv("DEBUG_AI_PARTS", "1");
+    const error = new Error("SECRET_CREDENTIAL");
+    await expect(partsLayout(request, { generate: async () => { throw error; } })).rejects.toBe(error);
+    expect(JSON.stringify(vi.mocked(console.log).mock.calls)).not.toContain("SECRET_CREDENTIAL");
+    expect(vi.mocked(console.log).mock.calls.some(args => String(args[0]).includes("request-failed"))).toBe(true);
+  });
+
   it("accepts the gold KALLAX layout and sends cover, parts pages, then step thumbnails", async () => {
     const { generate, sent } = fakeModel([layout]);
     const result = await partsLayout(request, { generate });

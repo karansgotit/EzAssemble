@@ -1,3 +1,4 @@
+import { ApiError } from "@google/genai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { PageIndex, PartsLayout, Step } from "@/schema";
@@ -58,6 +59,32 @@ describe("callStructured", () => {
     expect(result).toMatchObject({ ok: false, errors: ["step 4 is not on this page"], attempts: 3 });
     expect(result.usage).toHaveLength(3);
     expect(prompts[1]).toContain("The answer was not valid JSON.");
+  });
+});
+
+describe("callStructured failures that reach the client", () => {
+  const Parts = z.object({ parts: z.array(z.object({ id: z.string(), count: z.number().max(1) })) });
+
+  it("names list items by id, so the feedback still makes sense after the model reorders the list", async () => {
+    const { generate, prompts } = fakeModel(['{"parts":[{"id":"panel","count":1},{"id":"threaded_sleeve","count":8}]}', '{"parts":[]}']);
+    await callStructured({ prompt: "Q", images: [], schema: Parts, model: "fast", generate });
+    expect(prompts[1]).toContain('part "threaded_sleeve" (parts.1) count:');
+  });
+
+  it("turns Vertex's 504 (our own timeout) into ok: false with the errors so far, not a thrown error", async () => {
+    let call = 0;
+    const generate: Generate = async () => {
+      if (++call === 1) return { text: '{"parts":[{"id":"nut","count":4}]}', inputTokens: 1, outputTokens: 1 };
+      throw new ApiError({ message: "Deadline expired before operation could complete.", status: 504 });
+    };
+    const result = await callStructured({ prompt: "Q", images: [], schema: Parts, model: "fast", generate });
+    expect(result).toMatchObject({ ok: false, attempts: 2 });
+    expect(result.ok || result.errors).toEqual([expect.stringContaining('part "nut"'), "Model request timed out. Follow the original diagram."]);
+  });
+
+  it("still throws other Vertex errors, so the route answers 503", async () => {
+    const generate: Generate = async () => { throw new ApiError({ message: "busy", status: 429 }); };
+    await expect(callStructured({ prompt: "Q", images: [], schema: Parts, model: "fast", generate })).rejects.toBeInstanceOf(ApiError);
   });
 });
 
