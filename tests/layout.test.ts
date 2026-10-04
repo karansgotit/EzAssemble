@@ -1,14 +1,10 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { labelRoot, snapLayout } from "@/scene/layout";
 import type { AiPart, PartsLayout, Vec3 } from "@/scene/types";
+import { loadKallaxScene } from "./helpers/kallaxScene";
 
-// The hand-made KALLAX geometry. Read as data, not imported (D-17 allows converting the
-// prototype's fixture); switch to fixtures/kallax.scene.json once KAR-02 lands.
-type ReferencePart = Omit<AiPart, "sizeFrac" | "homeFrac"> & { sizeCm?: Vec3; homeCm?: Vec3 };
-const referencePath = fileURLToPath(new URL("../reference/prototype/src/fixtures/kallax.json", import.meta.url));
-const reference = JSON.parse(readFileSync(referencePath, "utf8")) as { parts: ReferencePart[] };
+// Perturb the actual generated scene fixture used by the app.
+const reference = loadKallaxScene();
 
 const BUILD_SIZE_CM: Vec3 = [147, 39, 77]; // KALLAX on its back (CONTRACTS §4.1)
 const NOISE = 0.08;
