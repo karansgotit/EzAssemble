@@ -43,27 +43,37 @@ There are **three layers of shapes**:
 ```ts
 import { z } from "zod";
 
+
 export const Face = z.enum(["top", "bottom", "left", "right", "front", "back"]);
 export type Face = z.infer<typeof Face>;
+
 
 export const Vec3 = z.tuple([z.number(), z.number(), z.number()]);
 export type Vec3 = z.infer<typeof Vec3>;
 
+export const ProductSizeCm = z.tuple([z.number().positive(), z.number().positive(), z.number().positive()]);
+export type ProductSizeCm = z.infer<typeof ProductSizeCm>;
+
 export const Verb = z.enum(["insert", "attach", "screw", "lock", "place", "flip"]);
 export type Verb = z.infer<typeof Verb>;
 
+
 export const PartId = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/);
+export type PartId = z.infer<typeof PartId>;
 
 export const PartKind = z.enum(["panel", "leg", "dowel", "screw", "cam", "camBolt", "nail", "other"]);
 export type PartKind = z.infer<typeof PartKind>;
 export const HARDWARE_KINDS: PartKind[] = ["dowel", "screw", "cam", "camBolt", "nail"];
 
+
 export const BuildOrientation = z.enum(["upright", "on-back", "upside-down", "on-side"]);
 export type BuildOrientation = z.infer<typeof BuildOrientation>;
 
 export const Confidence = z.enum(["high", "medium", "low"]);
+export type Confidence = z.infer<typeof Confidence>;
 
 export const WrongOrientation = z.enum(["flipped-vertical", "flipped-horizontal", "rotated-90"]);
+export type WrongOrientation = z.infer<typeof WrongOrientation>;
 ```
 
 ---
@@ -73,15 +83,28 @@ export const WrongOrientation = z.enum(["flipped-vertical", "flipped-horizontal"
 ### 2.1 Call 1: `PageIndex` (`schema/ai/pageIndex.ts`)
 
 ```ts
+import { z } from "zod";
+
+export const StepBox = z.tuple([
+  z.number().min(0).max(1000), z.number().min(0).max(1000),
+  z.number().min(0).max(1000), z.number().min(0).max(1000),
+]).refine(([ymin, xmin, ymax, xmax]) => ymin < ymax && xmin < xmax, {
+  message: "A step box must have ymin < ymax and xmin < xmax.",
+});
+export type StepBox = z.infer<typeof StepBox>;
+
 export const PageIndex = z.object({
   pageType: z.enum(["cover", "warning", "tools", "parts", "steps", "other"]),
   steps: z.array(z.object({
     stepNumber: z.number().int().min(1).max(200),
-    box: z.tuple([z.number(), z.number(), z.number(), z.number()]),  // [ymin, xmin, ymax, xmax], 0–1000
+    box: StepBox,  // [ymin, xmin, ymax, xmax], ordered and within 0–1000
     variant: z.string().max(30).optional(),       // branching steps, e.g. "vertical" | "horizontal"
     subassembly: z.string().max(30).optional(),   // e.g. "drawer" if this step builds a separate unit
   })),
+}).refine(page => page.pageType === "steps" || page.steps.length === 0, {
+  message: "Only a steps page may contain step boxes.", path: ["steps"],
 });
+export type PageIndex = z.infer<typeof PageIndex>;
 ```
 **Rules:**
 - `steps` is empty unless `pageType === "steps"`.
@@ -90,6 +113,13 @@ export const PageIndex = z.object({
 ### 2.2 Call 2: `PartsLayout` (`schema/ai/partsLayout.ts`)
 
 ```ts
+// PartsLayout = the AI's description of every part in the furniture (what it is,
+// how many, roughly how big, where it goes). This is only the shape of the answer;
+// the AI fills it in from the parts page, cover and step thumbnails.
+import { z } from "zod";
+
+import { BuildOrientation, Face, HARDWARE_KINDS, PartId, PartKind, Vec3 } from "../common";
+
 export const AiPart = z.object({
   id: PartId,                                  // stable for the whole manual, e.g. "long_panel_1"
   ikeaNumber: z.string().max(12).optional(),   // printed on hardware only, e.g. "101339"
@@ -104,6 +134,8 @@ export const AiPart = z.object({
     type: z.enum(["holes", "finished-edge"]),
     face: Face,                                // in BUILD frame
   })).default([]),
+}).refine(part => HARDWARE_KINDS.includes(part.kind) || part.count === 1, {
+  message: "Each non-hardware piece needs its own id and position, with count 1.", path: ["count"],
 });
 export type AiPart = z.infer<typeof AiPart>;
 
@@ -117,11 +149,16 @@ export type PartsLayout = z.infer<typeof PartsLayout>;
 - Ids are unique.
 - Hardware kinds have `hardwareMm` and no `sizeFrac`/`homeFrac`.
 - Non-hardware kinds have `sizeFrac` and `homeFrac`.
-- A finished sub-assembly (e.g. a drawer) is **one** part with `kind: "other"`, `shape: "box"`, and `count` = how many.
+- Every non-hardware piece has a distinct id, its own position, and `count: 1`, including repeated panels, legs and finished drawers. For two drawers use `drawer_1` and `drawer_2` with separate `homeFrac` values; only hardware shares an id with `count > 1`. A sub-assembly message may still describe several drawers together.
 
 ### 2.3 Call 3: `Step` (`schema/ai/step.ts`)
 
 ```ts
+// Step = the AI's description of one manual step: what moves where (actions),
+// a plain-English instruction, and a mistake warning only if the manual draws one.
+import { z } from "zod";
+import { Confidence, Face, PartId, Verb, WrongOrientation } from "../common";
+
 export const Action = z.object({
   verb: Verb,
   part: z.union([PartId, z.literal("assembly")]),  // "assembly" only for verb "flip"
@@ -141,6 +178,7 @@ export const ManualTrap = z.object({     // ONLY when the manual image itself dr
   hint: z.string().max(80),              // "Drilled holes face inward"
   source: z.literal("manual"),
 });
+export type ManualTrap = z.infer<typeof ManualTrap>;
 
 export const Step = z.object({
   stepNumber: z.number().int().min(1),
@@ -164,19 +202,31 @@ export type Step = z.infer<typeof Step>;
 | insert / screw / lock only on hardware kinds | `action 1: "insert" needs hardware, but "shelf_1" is a panel` |
 | attach / place only on non-hardware kinds | `action 1: "place" needs a panel, but "dowel" is hardware` |
 | hardware actions need `target` and `face` | `action 1: hardware needs a target and a face` |
-| `target` must be already placed or placed earlier in this step | `action 2: target "S2" has not been placed yet` |
+| In the opening step (`placedPartIds` empty), an unplaced non-hardware `target` of place/attach/insert/screw is introduced implicitly as a foundation. In any later step, an unplaced target is an error. Lock never introduces a target | `action 1: target "L2" has not been placed yet` |
 | `assembly` steps need ≥ 1 action; `info` steps need 0 | `kind "assembly" requires at least one action` |
 | flip: `part` is `"assembly"` and has a `flipMode` | `action 1: flip must use part "assembly" and a flipMode` |
 | trap part appears in this step's actions | `orientationTrap.part "L1" does not appear in the actions` |
-| (layout) ids unique; hardware vs panel fields as in §2.2; fractions in (0, 1] | `part "S1": panels need sizeFrac and homeFrac` |
+| (layout) ids unique (`assembly` reserved); hardware vs solid fields as in §2.2; size fractions in (0, 1], home fractions in (0, 1) | `part "S1": panels need sizeFrac and homeFrac` |
 
-**Cumulative count check** (all steps together): the orchestrator checks that total instances used per part ≤ `count`, after all steps are done. If a part is over-used, the offending steps are marked `confidence: "low"`.
+**Placement state:** `schema/placement.ts` exports `implicitTargetId(action, parts, placedPartIds)` and `placedPartsAfterStep(step, parts, before)`. The renderer, validator and orchestrator share this rule. KALLAX step 1 introduces E1 through the screw action and L1 through the attach target. A later explicit place/attach reuses that solid's instance; it does not consume another one. Targets and hardware `for` references must be known non-hardware parts; self-targets are rejected. Flip uses `assembly`, count 1, a flipMode, and no joint fields. Non-hardware actions have count 1.
+
+After each successfully validated assembly step, the orchestrator updates `placedPartIds = placedPartsAfterStep(step, parts, placedPartIds)`. Failed, info and subassembly steps leave that state unchanged.
+
+**Cumulative count check** (all steps together): `checkCumulativeCounts(steps, parts)` returns `{ stepNumber, message }[]`. Implicit foundations consume a solid once; later explicit placements reuse it. Insert/screw consume hardware; lock reuses inserted hardware and requires enough prior insertions. If a part is over-used, the offending steps are marked `confidence: "low"`.
 
 ---
 
 ## 3. Stored shapes (`schema/saved.ts`)
 
 ```ts
+// Saved shapes = what gets written to public/manuals/<id>/manual.json so the app can
+// replay a processed manual without calling the AI again.
+import { z } from "zod";
+import { ProductSizeCm } from "./common";
+import { PageIndex } from "./ai/pageIndex";
+import { PartsLayout } from "./ai/partsLayout";
+import { Step } from "./ai/step";
+
 export const SavedStep = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), step: Step, crop: z.string(), attempts: z.number().int() }),
   z.object({ status: z.literal("failed"), stepNumber: z.number().int(), crop: z.string(),
@@ -191,7 +241,7 @@ export const SavedManual = z.object({
   schemaVersion: z.literal(1),
   id: z.string().regex(/^[a-z0-9-]{1,40}$/),     // "kallax", "lack", "malm"
   title: z.string(),                              // "KALLAX 2×4 shelving unit"
-  productSizeCm: Vec3,                            // UPRIGHT [width, height, depth], typed by uploader
+  productSizeCm: ProductSizeCm,                   // UPRIGHT [width, height, depth], positive cm
   pages: z.array(PageIndex),                      // raw call-1 output, index = page number - 1
   layout: PartsLayout,                            // raw call-2 output
   steps: z.array(SavedStep),                      // in display order
@@ -206,6 +256,7 @@ export const LibraryIndex = z.array(z.object({
   thumbnail: z.string(),        // path relative to the manual folder, e.g. "crops/step-01.jpg"
   createdAt: z.string(),
 }));
+export type LibraryIndex = z.infer<typeof LibraryIndex>;
 ```
 
 **Files on disk:**
@@ -225,20 +276,30 @@ public/manuals/<id>/crops/step-NN.jpg     one per non-subassembly step (NN = 2-d
 The renderer (`scene/`, written fresh) consumes this. `buildSceneManual()` produces it.
 
 ```ts
+// Scene shapes = the exact, ready-to-draw input for the 3D engine. Built by our code
+// from the saved manual (fractions → cm, 3 step cases → one step shape).
+import { z } from "zod";
+import { BuildOrientation, Confidence, Face, HARDWARE_KINDS, PartId, PartKind, ProductSizeCm, Vec3, WrongOrientation } from "./common";
+import { Action } from "./ai/step";
+
 export const ScenePart = z.object({
   id: PartId, ikeaNumber: z.string().optional(), label: z.string(),
-  kind: PartKind, count: z.number().int(), shape: z.enum(["box", "cylinder"]),
+  kind: PartKind, count: z.number().int().min(1).max(64), shape: z.enum(["box", "cylinder"]),
   sizeCm: Vec3.optional(),        // non-hardware: exact size, BUILD frame
   homeCm: Vec3.optional(),        // non-hardware: exact centre, BUILD frame
   hardwareMm: z.object({ length: z.number(), diameter: z.number() }).optional(),
   features: z.array(z.object({ type: z.enum(["holes", "finished-edge"]), face: Face })),
+}).refine(part => HARDWARE_KINDS.includes(part.kind) || part.count === 1, {
+  message: "Each non-hardware piece needs its own id and position, with count 1.", path: ["count"],
 });
+export type ScenePart = z.infer<typeof ScenePart>;
 
 export const SceneTrap = z.object({
   part: PartId, mustFace: Face, wrong: WrongOrientation, hint: z.string(),
   source: z.enum(["manual", "geometry"]),
   autoplay: z.boolean(),          // manual: true; geometry: true only on first placement of that panel type
 });
+export type SceneTrap = z.infer<typeof SceneTrap>;
 
 export const SceneStep = z.object({
   stepNumber: z.number().int(),
@@ -249,10 +310,11 @@ export const SceneStep = z.object({
   confidence: Confidence,
   crop: z.string().optional(),    // URL of the diagram, absent for subassembly
 });
+export type SceneStep = z.infer<typeof SceneStep>;
 
 export const SceneManual = z.object({
   id: z.string(), title: z.string(),
-  buildSizeCm: Vec3,              // product size mapped into BUILD frame (§4.1)
+  buildSizeCm: ProductSizeCm,     // positive product size mapped into BUILD frame (§4.1)
   buildOrientation: BuildOrientation,
   parts: z.array(ScenePart),
   steps: z.array(SceneStep),
@@ -298,14 +360,62 @@ export function checkConsistency(manual: SceneManual): { stepNumber: number; pro
 
 ## 5. HTTP API (Next.js route handlers; owner: Karan, except save-manual: Smit)
 
-All bodies are JSON. Images are **base64 JPEG without the `data:` prefix**, at most about 1.5 MB each.
+All bodies are JSON. Images are **base64 JPEG without the `data:` prefix**. Hosted AI requests allow at most 1,500,000 base64 characters per image and **4,000,000 UTF-8 bytes for the entire serialized JSON body**, including metadata and all images. `schema/requestBudget.ts` exports `MAX_IMAGE_BASE64_CHARS`, `MAX_REQUEST_BYTES`, `requestBytes` and `checkRequestBudget`. This leaves headroom below the hosting limit; pixel dimensions alone are not a byte limit. The local development-only save route is exempt from this hosted request budget.
 
 ```ts
-// schema/api.ts
+// API shapes = what the browser sends to each server route (requests, checked first)
+// and what every route sends back (ApiResult: either the data or the errors).
+import { z } from "zod";
+import { PartId, ProductSizeCm } from "./common";
+import { AiPart } from "./ai/partsLayout";
+import { Step } from "./ai/step";
+import { SavedManual } from "./saved";
+import { checkRequestBudget, MAX_IMAGE_BASE64_CHARS } from "./requestBudget";
+
+const ImageBase64 = z.string().min(1).max(MAX_IMAGE_BASE64_CHARS);
+
 export type Usage = { model: string; inputTokens: number; outputTokens: number; ms: number };
 export type ApiResult<T> =
   | { ok: true;  data: T; attempts: number; usage: Usage[] }
   | { ok: false; errors: string[]; attempts: number; usage: Usage[] };
+
+export const IndexPageRequest = z.object({
+  image: ImageBase64,
+  pageNumber: z.number().int().min(1),
+}).superRefine(checkRequestBudget);
+export type IndexPageRequest = z.infer<typeof IndexPageRequest>;
+
+export const PartsRequest = z.object({
+  title: z.string(),
+  productSizeCm: ProductSizeCm,
+  partsPages: z.array(ImageBase64).min(1),
+  cover: ImageBase64,
+  stepThumbs: z.array(ImageBase64),
+  previousErrors: z.array(z.string()).optional(),
+}).superRefine(checkRequestBudget);
+export type PartsRequest = z.infer<typeof PartsRequest>;
+
+export const AnalyzeStepRequest = z.object({
+  image: ImageBase64,
+  stepNumber: z.number().int().min(1),
+  parts: z.array(AiPart),
+  placedPartIds: z.array(PartId),
+  previousInstructions: z.array(z.string()),
+}).superRefine(checkRequestBudget);
+export type AnalyzeStepRequest = z.infer<typeof AnalyzeStepRequest>;
+
+export const SaveManualRequest = z.object({
+  manual: SavedManual,
+  crops: z.array(z.object({ name: z.string(), base64: z.string() })),
+}); // Dev-only, local disk save: not subject to the hosted AI request budget.
+export type SaveManualRequest = z.infer<typeof SaveManualRequest>;
+
+export const AskRequest = z.object({
+  question: z.string().min(1),
+  step: Step,
+  image: ImageBase64,
+}).superRefine(checkRequestBudget);
+export type AskRequest = z.infer<typeof AskRequest>;
 ```
 
 | Route | Request body | Response | Model tier |
@@ -316,7 +426,7 @@ export type ApiResult<T> =
 | `POST /api/save-manual` _(dev only)_ | `{ manual: SavedManual, crops: { name: string, base64: string }[] }` | `{ ok: true, path: string }` or `{ ok: false, error: string }` | — |
 | `POST /api/ask` _(stretch)_ | `{ question: string, step: Step, image: string }` | `ApiResult<{ answer: string }>` | fast |
 
-**Request schemas** live in `schema/api.ts` as Zod objects with the same names plus `Request`: `IndexPageRequest`, `PartsRequest`, `AnalyzeStepRequest`, `SaveManualRequest`. Routes validate them first.
+**Request schemas** live in `schema/api.ts` as Zod objects with the same names plus `Request`: `IndexPageRequest`, `PartsRequest`, `AnalyzeStepRequest`, `SaveManualRequest`, `AskRequest`. Each exports a matching inferred data type. Routes validate them first; the browser validates the exact request before sending.
 
 **HTTP status codes:**
 - `200` when the request was valid, **including AI failures** (`ok: false`).
@@ -329,7 +439,9 @@ export type ApiResult<T> =
 
 **Retry policy:** done inside `callStructured`, at most 2 retries (3 attempts in total). The client does **not** retry `ok: false`. It retries a network error or a `5xx` once, after 2 s.
 
-**Image sizes** (enforced by the client):
+**Before sending:** `client/partsRequest.ts` exports `preparePartsRequest(request)`. The API client must await it before serializing `/api/parts`. Requests that already fit are unchanged; oversized sets are re-encoded at bounded resolutions/qualities while retaining every parts page, cover and thumbnail. If they still cannot fit, show its error without sending. Other AI endpoints must parse their request schema before fetching, so oversized images/context fail locally. The server parses again as a trust boundary.
+
+**Image sizes** (enforced by the client; maximums, downscaled further to fit the byte budget):
 
 | Image | Long side |
 |---|---|
@@ -350,6 +462,9 @@ export async function rasterize(file: File, opts?: { maxLongSide?: number }):
 // client/crop.ts
 export async function cropBox(page: { jpegBase64: string; width: number; height: number },
   box: [number, number, number, number], opts?: { padFrac?: number; maxLongSide?: number }): Promise<string>;
+
+// client/partsRequest.ts
+export async function preparePartsRequest(request: PartsRequest): Promise<PartsRequest>;
 
 // client/api.ts  — real implementation; client/api.mock.ts — same signatures, gold-backed
 export interface Api {

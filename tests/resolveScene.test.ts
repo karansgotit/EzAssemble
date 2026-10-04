@@ -3,6 +3,7 @@ import { FACE_NORMALS, add, cornersOf, rotate } from "@/scene/geometry";
 import { resolveScene, type Placed } from "@/scene/resolveScene";
 import type { SceneManual, Vec3 } from "@/scene/types";
 import { loadKallaxScene } from "./helpers/kallaxScene";
+import { SceneManual as SceneManualSchema } from "@/schema";
 
 const manual = loadKallaxScene();
 const afterStep = (stepNumber: number) => resolveScene(manual, stepNumber - 1);
@@ -109,5 +110,29 @@ describe("resolveScene on bad data", () => {
     expect(state.warnings[0]).toContain('"E2" does not sit on that face');
     expect(state.placed.get("dowel#3")?.position[0]).toBeCloseTo(3.8 + 139.4 * 0.15);
     expect(state.placed.get("dowel#4")?.position[0]).toBeCloseTo(3.8 + 139.4 * 0.85);
+  });
+});
+
+describe("separate solid instances", () => {
+  it("places two distinctly identified drawers at different positions", () => {
+    const m = SceneManualSchema.parse({
+      id: "drawers", title: "Drawers", buildSizeCm: [100, 100, 50], buildOrientation: "upright",
+      parts: [20, 60].map((y, i) => ({ id: `drawer_${i + 1}`, label: `Drawer ${i + 1}`, kind: "other", count: 1,
+        shape: "box", sizeCm: [80, 30, 40], homeCm: [50, y, 25], features: [] })),
+      steps: [{ stepNumber: 1, kind: "assembly", instruction: "Place both drawers.", confidence: "high",
+        actions: [1, 2].map(i => ({ verb: "place", part: `drawer_${i}`, count: 1 })) }],
+    });
+    const state = resolveScene(m, 0);
+    expect(state.placed.get("drawer_1#1")?.position).toEqual([50, 20, 25]);
+    expect(state.placed.get("drawer_2#1")?.position).toEqual([50, 60, 25]);
+    expect(state.warnings).toEqual([]);
+  });
+  it("skips old repeated-solid data rather than drawing overlapping copies", () => {
+    const m = structuredClone(manual);
+    m.parts.find(p => p.id === "D1")!.count = 2;
+    m.steps[1].actions[1].count = 2;
+    const state = resolveScene(m, 1);
+    expect(state.placed.has("D1#1")).toBe(false);
+    expect(state.warnings.join(" ")).toContain("each solid needs its own id");
   });
 });
