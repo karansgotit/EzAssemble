@@ -78,4 +78,20 @@ describe("toGeminiSchema", () => {
     for (const schema of [PageIndex, PartsLayout, Step]) walk(toGeminiSchema(z.toJSONSchema(schema, { io: "input" })));
     expect([...used].filter(key => !supported.has(key))).toEqual([]);
   });
+
+  it("makes optional fields required but nullable, so Gemini always decides on them", () => {
+    const sent = toGeminiSchema(z.toJSONSchema(z.object({ target: z.string(), face: z.string().optional() }), { io: "input" }));
+    expect(sent).toMatchObject({
+      required: ["target", "face"],
+      properties: { target: { type: "string" }, face: { anyOf: [{ type: "string" }, { type: "null" }] } },
+    });
+  });
+
+  it("drops the nulls again before checking, so an empty optional field is just missing", async () => {
+    const { generate } = fakeModel(['{"stepNumber": 3, "note": null}']);
+    const schema = z.object({ stepNumber: z.number().int(), note: z.string().optional() });
+    const result = await callStructured({ prompt: "Q", images: [], schema, model: "fast", generate });
+    expect(result).toMatchObject({ ok: true, data: { stepNumber: 3 } });
+    expect(result.ok && "note" in result.data).toBe(false);
+  });
 });
