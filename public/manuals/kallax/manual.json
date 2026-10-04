@@ -1,0 +1,1071 @@
+{
+  "schemaVersion": 1,
+  "id": "kallax",
+  "title": "KALLAX 2×4",
+  "productSizeCm": [
+    77,
+    147,
+    39
+  ],
+  "pages": [
+    {
+      "pageType": "cover",
+      "steps": []
+    },
+    {
+      "pageType": "warning",
+      "steps": []
+    },
+    {
+      "pageType": "warning",
+      "steps": []
+    },
+    {
+      "pageType": "warning",
+      "steps": []
+    },
+    {
+      "pageType": "warning",
+      "steps": []
+    },
+    {
+      "pageType": "other",
+      "steps": []
+    },
+    {
+      "pageType": "parts",
+      "steps": []
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 1,
+          "box": [
+            33,
+            20,
+            589,
+            980
+          ]
+        },
+        {
+          "stepNumber": 2,
+          "box": [
+            599,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 3,
+          "box": [
+            33,
+            20,
+            362,
+            980
+          ]
+        },
+        {
+          "stepNumber": 4,
+          "box": [
+            372,
+            20,
+            702,
+            980
+          ]
+        },
+        {
+          "stepNumber": 5,
+          "box": [
+            712,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 6,
+          "box": [
+            33,
+            20,
+            475,
+            980
+          ]
+        },
+        {
+          "stepNumber": 7,
+          "box": [
+            485,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 8,
+          "box": [
+            33,
+            20,
+            475,
+            980
+          ]
+        },
+        {
+          "stepNumber": 9,
+          "box": [
+            485,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 10,
+          "box": [
+            33,
+            20,
+            476,
+            980
+          ]
+        },
+        {
+          "stepNumber": 11,
+          "box": [
+            486,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 12,
+          "box": [
+            33,
+            20,
+            475,
+            980
+          ]
+        },
+        {
+          "stepNumber": 13,
+          "box": [
+            485,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 14,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ]
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 15,
+          "box": [
+            266,
+            20,
+            950,
+            980
+          ],
+          "variant": "vertical"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 16,
+          "box": [
+            487,
+            20,
+            950,
+            980
+          ],
+          "variant": "vertical"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 17,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ],
+          "variant": "vertical"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 18,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ],
+          "variant": "vertical"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 19,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ],
+          "variant": "vertical"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 15,
+          "box": [
+            259,
+            20,
+            950,
+            980
+          ],
+          "variant": "horizontal"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 16,
+          "box": [
+            488,
+            20,
+            950,
+            980
+          ],
+          "variant": "horizontal"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 17,
+          "box": [
+            31,
+            20,
+            950,
+            980
+          ],
+          "variant": "horizontal"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 18,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ],
+          "variant": "horizontal"
+        }
+      ]
+    },
+    {
+      "pageType": "steps",
+      "steps": [
+        {
+          "stepNumber": 19,
+          "box": [
+            33,
+            20,
+            950,
+            980
+          ],
+          "variant": "horizontal"
+        }
+      ]
+    }
+  ],
+  "layout": {
+    "buildOrientation": "on-back",
+    "parts": [
+      {
+        "id": "E1",
+        "label": "End panel (top when upright)",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.0259,
+          1,
+          1
+        ],
+        "homeFrac": [
+          0.0129,
+          0.5,
+          0.5
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "right"
+          }
+        ]
+      },
+      {
+        "id": "E2",
+        "label": "End panel (bottom when upright)",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.0259,
+          1,
+          1
+        ],
+        "homeFrac": [
+          0.9871,
+          0.5,
+          0.5
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "left"
+          }
+        ]
+      },
+      {
+        "id": "L1",
+        "label": "Long side panel (back in the drawings)",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.9483,
+          1,
+          0.0494
+        ],
+        "homeFrac": [
+          0.5,
+          0.5,
+          0.0247
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "front"
+          }
+        ]
+      },
+      {
+        "id": "L2",
+        "label": "Long side panel (placed last)",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.9483,
+          1,
+          0.0494
+        ],
+        "homeFrac": [
+          0.5,
+          0.5,
+          0.9753
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "back"
+          }
+        ]
+      },
+      {
+        "id": "S1",
+        "label": "Shelf 1",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.0109,
+          1,
+          0.9013
+        ],
+        "homeFrac": [
+          0.2602,
+          0.5,
+          0.5
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "right"
+          }
+        ]
+      },
+      {
+        "id": "S2",
+        "label": "Shelf 2",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.0109,
+          1,
+          0.9013
+        ],
+        "homeFrac": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "right"
+          }
+        ]
+      },
+      {
+        "id": "S3",
+        "label": "Shelf 3",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.0109,
+          1,
+          0.9013
+        ],
+        "homeFrac": [
+          0.7398,
+          0.5,
+          0.5
+        ],
+        "features": [
+          {
+            "type": "holes",
+            "face": "right"
+          }
+        ]
+      },
+      {
+        "id": "D1",
+        "label": "Divider piece 1",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.2289,
+          1,
+          0.0208
+        ],
+        "homeFrac": [
+          0.1403,
+          0.5,
+          0.5
+        ],
+        "features": []
+      },
+      {
+        "id": "D2",
+        "label": "Divider piece 2",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.2289,
+          1,
+          0.0208
+        ],
+        "homeFrac": [
+          0.3801,
+          0.5,
+          0.5
+        ],
+        "features": []
+      },
+      {
+        "id": "D3",
+        "label": "Divider piece 3",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.2289,
+          1,
+          0.0208
+        ],
+        "homeFrac": [
+          0.6199,
+          0.5,
+          0.5
+        ],
+        "features": []
+      },
+      {
+        "id": "D4",
+        "label": "Divider piece 4",
+        "kind": "panel",
+        "count": 1,
+        "shape": "box",
+        "sizeFrac": [
+          0.2289,
+          1,
+          0.0208
+        ],
+        "homeFrac": [
+          0.8597,
+          0.5,
+          0.5
+        ],
+        "features": []
+      },
+      {
+        "id": "dowel",
+        "ikeaNumber": "101339",
+        "label": "Wooden dowel",
+        "kind": "dowel",
+        "count": 22,
+        "shape": "cylinder",
+        "hardwareMm": {
+          "length": 30,
+          "diameter": 8
+        },
+        "features": []
+      },
+      {
+        "id": "screw",
+        "ikeaNumber": "104321",
+        "label": "Long assembly screw",
+        "kind": "screw",
+        "count": 8,
+        "shape": "cylinder",
+        "hardwareMm": {
+          "length": 50,
+          "diameter": 7
+        },
+        "features": []
+      }
+    ]
+  },
+  "steps": [
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 1,
+        "kind": "assembly",
+        "instruction": "Lay the long panel on its edge on a soft surface. Screw the end panel onto its left end with 2 long screws, using the Allen key fitted into the handle tool. Stand the other end panel at the far end.",
+        "actions": [
+          {
+            "verb": "screw",
+            "part": "screw",
+            "count": 2,
+            "target": "E1",
+            "face": "left",
+            "for": "L1"
+          },
+          {
+            "verb": "attach",
+            "part": "E1",
+            "count": 1,
+            "target": "L1",
+            "face": "left"
+          },
+          {
+            "verb": "place",
+            "part": "E2",
+            "count": 1,
+            "target": "L1",
+            "face": "right"
+          }
+        ],
+        "orientationTrap": {
+          "part": "L1",
+          "mustFace": "front",
+          "wrong": "flipped-horizontal",
+          "hint": "Drilled holes face inward",
+          "source": "manual"
+        },
+        "confidence": "medium"
+      },
+      "crop": "crops/step-01.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 2,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the end panel, then slide the first divider piece onto them.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "E1",
+            "face": "right",
+            "for": "D1"
+          },
+          {
+            "verb": "place",
+            "part": "D1",
+            "count": 1,
+            "target": "E1",
+            "face": "right"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-02.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 3,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the long panel and push the first shelf onto them.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "L1",
+            "face": "front",
+            "for": "S1"
+          },
+          {
+            "verb": "place",
+            "part": "S1",
+            "count": 1,
+            "target": "L1",
+            "face": "front"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-03.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 4,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the shelf, ready for the next divider piece.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S1",
+            "face": "right",
+            "for": "D2"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-04.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 5,
+        "kind": "assembly",
+        "instruction": "Slide the second divider piece onto the dowels.",
+        "actions": [
+          {
+            "verb": "place",
+            "part": "D2",
+            "count": 1,
+            "target": "S1",
+            "face": "right"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-05.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 6,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the long panel and push the second shelf on.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "L1",
+            "face": "front",
+            "for": "S2"
+          },
+          {
+            "verb": "place",
+            "part": "S2",
+            "count": 1,
+            "target": "L1",
+            "face": "front"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-06.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 7,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the second shelf.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S2",
+            "face": "right",
+            "for": "D3"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-07.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 8,
+        "kind": "assembly",
+        "instruction": "Slide the third divider piece on.",
+        "actions": [
+          {
+            "verb": "place",
+            "part": "D3",
+            "count": 1,
+            "target": "S2",
+            "face": "right"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-08.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 9,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the long panel and push the third shelf on.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "L1",
+            "face": "front",
+            "for": "S3"
+          },
+          {
+            "verb": "place",
+            "part": "S3",
+            "count": 1,
+            "target": "L1",
+            "face": "front"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-09.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 10,
+        "kind": "assembly",
+        "instruction": "Tap 2 dowels into the third shelf.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S3",
+            "face": "right",
+            "for": "D4"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-10.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 11,
+        "kind": "assembly",
+        "instruction": "Slide the last divider piece on.",
+        "actions": [
+          {
+            "verb": "place",
+            "part": "D4",
+            "count": 1,
+            "target": "S3",
+            "face": "right"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-11.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 12,
+        "kind": "assembly",
+        "instruction": "Tap 8 dowels into the exposed edges of the shelves and the end panel.",
+        "actions": [
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S1",
+            "face": "front",
+            "for": "L2"
+          },
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S2",
+            "face": "front",
+            "for": "L2"
+          },
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "S3",
+            "face": "front",
+            "for": "L2"
+          },
+          {
+            "verb": "insert",
+            "part": "dowel",
+            "count": 2,
+            "target": "E2",
+            "face": "left",
+            "for": "L2"
+          }
+        ],
+        "confidence": "low"
+      },
+      "crop": "crops/step-12.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 13,
+        "kind": "assembly",
+        "instruction": "Lower the second long panel onto all the dowels at once.",
+        "actions": [
+          {
+            "verb": "attach",
+            "part": "L2",
+            "count": 1,
+            "target": "S2",
+            "face": "front"
+          }
+        ],
+        "orientationTrap": {
+          "part": "L2",
+          "mustFace": "back",
+          "wrong": "flipped-horizontal",
+          "hint": "Drilled holes face down onto the dowels",
+          "source": "manual"
+        },
+        "confidence": "high"
+      },
+      "crop": "crops/step-13.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 14,
+        "kind": "assembly",
+        "instruction": "Fix the corners with the 6 remaining long screws, using the Allen key and handle tool.",
+        "actions": [
+          {
+            "verb": "screw",
+            "part": "screw",
+            "count": 2,
+            "target": "E1",
+            "face": "left",
+            "for": "L2"
+          },
+          {
+            "verb": "screw",
+            "part": "screw",
+            "count": 2,
+            "target": "E2",
+            "face": "right",
+            "for": "L2"
+          },
+          {
+            "verb": "screw",
+            "part": "screw",
+            "count": 2,
+            "target": "E2",
+            "face": "right",
+            "for": "L1"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-14.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 15,
+        "kind": "assembly",
+        "instruction": "With a helper, stand the shelf upright and stick 4 felt pads under it.",
+        "actions": [
+          {
+            "verb": "flip",
+            "part": "assembly",
+            "count": 1,
+            "flipMode": "stand-up"
+          }
+        ],
+        "confidence": "high"
+      },
+      "crop": "crops/step-15.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 16,
+        "kind": "info",
+        "instruction": "This shelf must be fixed to the wall. Mark the bracket position under the top edge.",
+        "actions": [],
+        "confidence": "high"
+      },
+      "crop": "crops/step-16.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 17,
+        "kind": "info",
+        "instruction": "Hold the shelf against the wall, check it is level, and mark the drilling points through the brackets.",
+        "actions": [],
+        "confidence": "high"
+      },
+      "crop": "crops/step-17.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 18,
+        "kind": "info",
+        "instruction": "Fix 2 wall screws (not included — choose ones suitable for your wall).",
+        "actions": [],
+        "confidence": "high"
+      },
+      "crop": "crops/step-18.jpg",
+      "attempts": 1
+    },
+    {
+      "status": "ok",
+      "step": {
+        "stepNumber": 19,
+        "kind": "info",
+        "instruction": "Hang the shelf on the brackets and snap on the covers.",
+        "actions": [],
+        "confidence": "high"
+      },
+      "crop": "crops/step-19.jpg",
+      "attempts": 1
+    }
+  ],
+  "createdAt": "2026-10-04T00:00:00Z"
+}

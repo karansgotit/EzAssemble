@@ -1,0 +1,652 @@
+{
+  "id": "kallax",
+  "title": "KALLAX 2×4",
+  "buildSizeCm": [
+    147,
+    39,
+    77
+  ],
+  "buildOrientation": "on-back",
+  "parts": [
+    {
+      "id": "E1",
+      "label": "End panel (top when upright)",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        3.8,
+        39,
+        77
+      ],
+      "homeCm": [
+        1.9,
+        19.5,
+        38.5
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "right"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "label": "End panel (bottom when upright)",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        3.8,
+        39,
+        77
+      ],
+      "homeCm": [
+        145.1,
+        19.5,
+        38.5
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "left"
+        }
+      ]
+    },
+    {
+      "id": "L1",
+      "label": "Long side panel (back in the drawings)",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        139.4,
+        39,
+        3.8
+      ],
+      "homeCm": [
+        73.5,
+        19.5,
+        1.9
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "front"
+        }
+      ]
+    },
+    {
+      "id": "L2",
+      "label": "Long side panel (placed last)",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        139.4,
+        39,
+        3.8
+      ],
+      "homeCm": [
+        73.5,
+        19.5,
+        75.1
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "back"
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "label": "Shelf 1",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        1.6,
+        39,
+        69.4
+      ],
+      "homeCm": [
+        38.25,
+        19.5,
+        38.5
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "right"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "label": "Shelf 2",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        1.6,
+        39,
+        69.4
+      ],
+      "homeCm": [
+        73.5,
+        19.5,
+        38.5
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "right"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "label": "Shelf 3",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        1.6,
+        39,
+        69.4
+      ],
+      "homeCm": [
+        108.75,
+        19.5,
+        38.5
+      ],
+      "features": [
+        {
+          "type": "holes",
+          "face": "right"
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "label": "Divider piece 1",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        33.65,
+        39,
+        1.6
+      ],
+      "homeCm": [
+        20.625,
+        19.5,
+        38.5
+      ],
+      "features": []
+    },
+    {
+      "id": "D2",
+      "label": "Divider piece 2",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        33.65,
+        39,
+        1.6
+      ],
+      "homeCm": [
+        55.875,
+        19.5,
+        38.5
+      ],
+      "features": []
+    },
+    {
+      "id": "D3",
+      "label": "Divider piece 3",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        33.65,
+        39,
+        1.6
+      ],
+      "homeCm": [
+        91.125,
+        19.5,
+        38.5
+      ],
+      "features": []
+    },
+    {
+      "id": "D4",
+      "label": "Divider piece 4",
+      "kind": "panel",
+      "count": 1,
+      "shape": "box",
+      "sizeCm": [
+        33.65,
+        39,
+        1.6
+      ],
+      "homeCm": [
+        126.375,
+        19.5,
+        38.5
+      ],
+      "features": []
+    },
+    {
+      "id": "dowel",
+      "ikeaNumber": "101339",
+      "label": "Wooden dowel",
+      "kind": "dowel",
+      "count": 22,
+      "shape": "cylinder",
+      "hardwareMm": {
+        "length": 30,
+        "diameter": 8
+      },
+      "features": []
+    },
+    {
+      "id": "screw",
+      "ikeaNumber": "104321",
+      "label": "Long assembly screw",
+      "kind": "screw",
+      "count": 8,
+      "shape": "cylinder",
+      "hardwareMm": {
+        "length": 50,
+        "diameter": 7
+      },
+      "features": []
+    }
+  ],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "kind": "assembly",
+      "instruction": "Lay the long panel on its edge on a soft surface. Screw the end panel onto its left end with 2 long screws, using the Allen key fitted into the handle tool. Stand the other end panel at the far end.",
+      "actions": [
+        {
+          "verb": "screw",
+          "part": "screw",
+          "count": 2,
+          "target": "E1",
+          "face": "left",
+          "for": "L1"
+        },
+        {
+          "verb": "attach",
+          "part": "E1",
+          "count": 1,
+          "target": "L1",
+          "face": "left"
+        },
+        {
+          "verb": "place",
+          "part": "E2",
+          "count": 1,
+          "target": "L1",
+          "face": "right"
+        }
+      ],
+      "trap": {
+        "part": "L1",
+        "mustFace": "front",
+        "wrong": "flipped-horizontal",
+        "hint": "Drilled holes face inward",
+        "source": "manual",
+        "autoplay": true
+      },
+      "confidence": "medium",
+      "crop": "/manuals/kallax/crops/step-01.jpg"
+    },
+    {
+      "stepNumber": 2,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the end panel, then slide the first divider piece onto them.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "E1",
+          "face": "right",
+          "for": "D1"
+        },
+        {
+          "verb": "place",
+          "part": "D1",
+          "count": 1,
+          "target": "E1",
+          "face": "right"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-02.jpg"
+    },
+    {
+      "stepNumber": 3,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the long panel and push the first shelf onto them.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "L1",
+          "face": "front",
+          "for": "S1"
+        },
+        {
+          "verb": "place",
+          "part": "S1",
+          "count": 1,
+          "target": "L1",
+          "face": "front"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-03.jpg"
+    },
+    {
+      "stepNumber": 4,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the shelf, ready for the next divider piece.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S1",
+          "face": "right",
+          "for": "D2"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-04.jpg"
+    },
+    {
+      "stepNumber": 5,
+      "kind": "assembly",
+      "instruction": "Slide the second divider piece onto the dowels.",
+      "actions": [
+        {
+          "verb": "place",
+          "part": "D2",
+          "count": 1,
+          "target": "S1",
+          "face": "right"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-05.jpg"
+    },
+    {
+      "stepNumber": 6,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the long panel and push the second shelf on.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "L1",
+          "face": "front",
+          "for": "S2"
+        },
+        {
+          "verb": "place",
+          "part": "S2",
+          "count": 1,
+          "target": "L1",
+          "face": "front"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-06.jpg"
+    },
+    {
+      "stepNumber": 7,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the second shelf.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S2",
+          "face": "right",
+          "for": "D3"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-07.jpg"
+    },
+    {
+      "stepNumber": 8,
+      "kind": "assembly",
+      "instruction": "Slide the third divider piece on.",
+      "actions": [
+        {
+          "verb": "place",
+          "part": "D3",
+          "count": 1,
+          "target": "S2",
+          "face": "right"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-08.jpg"
+    },
+    {
+      "stepNumber": 9,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the long panel and push the third shelf on.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "L1",
+          "face": "front",
+          "for": "S3"
+        },
+        {
+          "verb": "place",
+          "part": "S3",
+          "count": 1,
+          "target": "L1",
+          "face": "front"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-09.jpg"
+    },
+    {
+      "stepNumber": 10,
+      "kind": "assembly",
+      "instruction": "Tap 2 dowels into the third shelf.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S3",
+          "face": "right",
+          "for": "D4"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-10.jpg"
+    },
+    {
+      "stepNumber": 11,
+      "kind": "assembly",
+      "instruction": "Slide the last divider piece on.",
+      "actions": [
+        {
+          "verb": "place",
+          "part": "D4",
+          "count": 1,
+          "target": "S3",
+          "face": "right"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-11.jpg"
+    },
+    {
+      "stepNumber": 12,
+      "kind": "assembly",
+      "instruction": "Tap 8 dowels into the exposed edges of the shelves and the end panel.",
+      "actions": [
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S1",
+          "face": "front",
+          "for": "L2"
+        },
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S2",
+          "face": "front",
+          "for": "L2"
+        },
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "S3",
+          "face": "front",
+          "for": "L2"
+        },
+        {
+          "verb": "insert",
+          "part": "dowel",
+          "count": 2,
+          "target": "E2",
+          "face": "left",
+          "for": "L2"
+        }
+      ],
+      "confidence": "low",
+      "crop": "/manuals/kallax/crops/step-12.jpg"
+    },
+    {
+      "stepNumber": 13,
+      "kind": "assembly",
+      "instruction": "Lower the second long panel onto all the dowels at once.",
+      "actions": [
+        {
+          "verb": "attach",
+          "part": "L2",
+          "count": 1,
+          "target": "S2",
+          "face": "front"
+        }
+      ],
+      "trap": {
+        "part": "L2",
+        "mustFace": "back",
+        "wrong": "flipped-horizontal",
+        "hint": "Drilled holes face down onto the dowels",
+        "source": "manual",
+        "autoplay": true
+      },
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-13.jpg"
+    },
+    {
+      "stepNumber": 14,
+      "kind": "assembly",
+      "instruction": "Fix the corners with the 6 remaining long screws, using the Allen key and handle tool.",
+      "actions": [
+        {
+          "verb": "screw",
+          "part": "screw",
+          "count": 2,
+          "target": "E1",
+          "face": "left",
+          "for": "L2"
+        },
+        {
+          "verb": "screw",
+          "part": "screw",
+          "count": 2,
+          "target": "E2",
+          "face": "right",
+          "for": "L2"
+        },
+        {
+          "verb": "screw",
+          "part": "screw",
+          "count": 2,
+          "target": "E2",
+          "face": "right",
+          "for": "L1"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-14.jpg"
+    },
+    {
+      "stepNumber": 15,
+      "kind": "assembly",
+      "instruction": "With a helper, stand the shelf upright and stick 4 felt pads under it.",
+      "actions": [
+        {
+          "verb": "flip",
+          "part": "assembly",
+          "count": 1,
+          "flipMode": "stand-up"
+        }
+      ],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-15.jpg"
+    },
+    {
+      "stepNumber": 16,
+      "kind": "info",
+      "instruction": "This shelf must be fixed to the wall. Mark the bracket position under the top edge.",
+      "actions": [],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-16.jpg"
+    },
+    {
+      "stepNumber": 17,
+      "kind": "info",
+      "instruction": "Hold the shelf against the wall, check it is level, and mark the drilling points through the brackets.",
+      "actions": [],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-17.jpg"
+    },
+    {
+      "stepNumber": 18,
+      "kind": "info",
+      "instruction": "Fix 2 wall screws (not included — choose ones suitable for your wall).",
+      "actions": [],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-18.jpg"
+    },
+    {
+      "stepNumber": 19,
+      "kind": "info",
+      "instruction": "Hang the shelf on the brackets and snap on the covers.",
+      "actions": [],
+      "confidence": "high",
+      "crop": "/manuals/kallax/crops/step-19.jpg"
+    }
+  ]
+}
