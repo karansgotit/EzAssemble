@@ -7,7 +7,9 @@ import type { Vector3 } from "three";
 import { CameraRig } from "./CameraRig";
 import { COLORS } from "./constants";
 import { Ghost } from "./Ghost";
-import { add, boundsOf, cornersOf, rotate, type Bounds, type Cuboid } from "./geometry";
+import {
+  NO_ROTATION, add, boundsOf, cornersOf, rotate, sameRotation, uprightRotation, type Bounds, type Cuboid,
+} from "./geometry";
 import { MotionGuide } from "./MotionGuide";
 import { PartMesh } from "./PartMesh";
 import { ASSEMBLY_ID, assemblyBounds, resolveScene, type AssemblyPose } from "./resolveScene";
@@ -77,8 +79,10 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
   const flipping = tracks.some((t) => t.id === ASSEMBLY_ID);
   const assembly: AssemblyPose = poses.get(ASSEMBLY_ID) ?? after.assembly;
   const flipDone = !flipping || time >= totalDuration;
-  const standing = flipDone && after.assembly.quaternion[3] !== 1;
-  const lying = before.assembly.quaternion[3] === 1 && after.assembly.quaternion[3] === 1;
+  // What is on screen once any flip has finished, and whether that is the furniture upright.
+  const shown = flipDone ? after.assembly : before.assembly;
+  const standing = sameRotation(shown.quaternion, uprightRotation(manual.buildOrientation));
+  const resting = sameRotation(before.assembly.quaternion, NO_ROTATION) && sameRotation(after.assembly.quaternion, NO_ROTATION);
   const current = new Set(flipping ? after.placed.keys() : tracks.map((t) => t.id));
   const step = manual.steps[stepIndex];
   const trapPiece = step?.trap ? [...after.placed.values()].find((p) => p.partId === step.trap?.part) : undefined;
@@ -128,7 +132,7 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
         {showTrap && step?.trap && trapPiece && <Ghost piece={trapPiece} trap={step.trap} time={time} />}
       </group>
 
-      {lying && (
+      {resting && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[length / 2, -0.3, width / 2]}>
           <planeGeometry args={[length * 1.2, width * 1.4]} />
           <meshStandardMaterial color={COLORS.floor} roughness={1} />
@@ -137,7 +141,7 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
       <ContactShadows position={[length / 2, -0.6, width / 2]} scale={length * 2.2} opacity={0.22} blur={2.8} far={length * 1.2} resolution={256} />
 
       <CameraRig
-        bounds={standing ? boundsInWorld(focus, after.assembly) : focus}
+        bounds={boundsInWorld(focus, shown)}
         frameKey={`${manual.id}-${stepIndex}-${playKey}`}
         standing={standing}
         lookAt={lookAt}
