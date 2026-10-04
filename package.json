@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "eval": "tsx --conditions=react-server pipeline/eval/run-eval.ts"
+    "eval": "tsx --conditions=react-server pipeline/eval/run-eval.ts",
+    "check:vertex": "tsx scripts/check-vertex.ts"
   },
   "dependencies": {
     "@google/genai": "^2.27.0",
