@@ -56,15 +56,24 @@ const SPREAD: Record<NonNullable<Action["at"]>, [number, number]> = {
 };
 const JOINT_SPREAD: [number, number] = [0.25, 0.75];
 
+const VERBS: Verb[] = ["insert", "attach", "screw", "lock", "place", "flip"];
+const MAX_PIECES_PER_ACTION = 64;
+
+const isVec3 = (v: unknown): v is Vec3 =>
+  Array.isArray(v) && v.length === 3 && v.every((n) => typeof n === "number" && Number.isFinite(n));
+const isPositive = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n > 0;
+
 export function assemblyBounds(state: SceneState, manual: SceneManual): Bounds {
   const solid = [...state.placed.values()].filter((p) => !HARDWARE_KINDS.includes(p.kind));
-  return boundsOf(solid, { min: [0, 0, 0], max: manual.buildSizeCm });
+  const size = isVec3(manual?.buildSizeCm) && manual.buildSizeCm.every(isPositive) ? manual.buildSizeCm : ([100, 100, 100] as Vec3);
+  return boundsOf(solid, { min: [0, 0, 0], max: size });
 }
 
 // Pure and never throws: replays steps 0..upToStep and returns where every piece is afterwards.
 // An action it cannot make sense of is skipped and explained in `warnings`.
 export function resolveScene(manual: SceneManual, upToStep: number, hardwareScale = HARDWARE_SCALE): SceneState {
-  const parts = new Map(manual.parts.map((p) => [p.id, p]));
+  const partList = Array.isArray(manual?.parts) ? manual.parts.filter((p) => p && typeof p.id === "string") : [];
+  const parts = new Map(partList.map((p) => [p.id, p]));
   const used = new Map<string, number>();
   const inserted = new Map<string, string[]>();
   const state: SceneState = {
@@ -75,7 +84,9 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
   };
 
   const cuboidOf = (part: ScenePart): Cuboid | undefined =>
-    part.sizeCm && part.homeCm ? { position: [...part.homeCm], size: [...part.sizeCm] } : undefined;
+    isVec3(part.sizeCm) && isVec3(part.homeCm) && part.sizeCm.every(isPositive)
+      ? { position: [...part.homeCm], size: [...part.sizeCm] }
+      : undefined;
 
   const putSolid = (part: ScenePart, box: Cuboid, id: string): void => {
     state.placed.set(id, { ...box, id, partId: part.id, kind: part.kind, shape: part.shape, quaternion: NO_ROTATION, spin: 0 });
@@ -94,7 +105,9 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
       state.warnings.push(`${where}: ${why}, so it was skipped`);
       return undefined;
     };
-    const normal = FACE_NORMALS[action.face ?? "top"] ?? FACE_NORMALS.top;
+    if (!action || !VERBS.includes(action.verb)) return skip(`"${String(action?.verb)}" is not a known verb`);
+    if (action.face !== undefined && !FACE_NORMALS[action.face]) return skip(`"${String(action.face)}" is not a known face`);
+    const normal = FACE_NORMALS[action.face ?? "top"];
 
     if (action.verb === "flip") {
       const quaternion = flipRotation(manual.buildOrientation, action.flipMode ?? "stand-up", state.assembly.quaternion);
@@ -104,12 +117,16 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
 
     const part = parts.get(action.part);
     if (!part) return skip(`part "${action.part}" is not in the parts list`);
+    if (!Number.isInteger(action.count) || action.count < 1 || action.count > MAX_PIECES_PER_ACTION) {
+      return skip(`${String(action.count)} is not a usable count`);
+    }
+    if (action.for !== undefined && !parts.has(action.for)) return skip(`"${action.for}" (for) is not in the parts list`);
     const target = action.target === undefined ? undefined : parts.get(action.target);
     if (action.target !== undefined && !target) return skip(`target "${action.target}" is not in the parts list`);
     const targetBox = target && !isHardware(target) ? cuboidOf(target) : undefined;
     const introduceTarget = (): void => {
       const placedIds = [...state.placed.values()].map(piece => piece.partId);
-      if (target && targetBox && implicitTargetId(action, manual.parts, placedIds)) {
+      if (target && targetBox && implicitTargetId(action, partList, placedIds)) {
         putSolid(target, targetBox, instanceId(target.id, 1));
         used.set(target.id, 1);
       }
@@ -139,7 +156,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
       return { action, ids, normal, motion: action.verb === "attach" ? "attach" : "place" };
     }
 
-    if (!part.hardwareMm) return skip(`hardware "${part.id}" has no size`);
+    if (!isPositive(part.hardwareMm?.length) || !isPositive(part.hardwareMm?.diameter)) return skip(`hardware "${part.id}" has no size`);
     if (!target || !targetBox || !action.face) return skip(`hardware "${part.id}" needs a target panel and a face`);
     const face = faceRect(targetBox, action.face);
     const forPart = action.for === undefined ? undefined : parts.get(action.for);
@@ -155,8 +172,8 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     const points = strip
       ? pointsOnFace(strip, action.count, ...JOINT_SPREAD)
       : pointsOnFace(face, action.count, ...SPREAD[action.at ?? "all"]);
-    const length = (part.hardwareMm.length / 10) * hardwareScale;
-    const diameter = (part.hardwareMm.diameter / 10) * hardwareScale;
+    const length = ((part.hardwareMm?.length ?? 0) / 10) * hardwareScale;
+    const diameter = ((part.hardwareMm?.diameter ?? 0) / 10) * hardwareScale;
     // Dowels sit half in each panel; everything else is driven in until its head is flush.
     const sink = part.kind === "dowel" ? 0 : length / 2;
     const motion = hardwareMotion(part.kind);
@@ -176,12 +193,20 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     return { action, ids, normal, motion };
   };
 
-  const steps = Array.isArray(manual.steps) ? manual.steps : [];
+  const steps = Array.isArray(manual?.steps) ? manual.steps : [];
   for (const step of steps.slice(0, Math.max(0, upToStep + 1))) {
     const resolved: ResolvedAction[] = [];
-    (step.actions ?? []).forEach((action, i) => {
-      const done = resolveAction(action, `step ${step.stepNumber}, action ${i + 1}`);
-      if (done) resolved.push(done);
+    // Info, sub-assembly and failed steps move nothing: the scene stays as the last step left it.
+    const actions = step?.kind === "assembly" && Array.isArray(step.actions) ? step.actions : [];
+    actions.forEach((action, i) => {
+      const where = `step ${step.stepNumber}, action ${i + 1}`;
+      try {
+        const done = resolveAction(action, where);
+        if (done) resolved.push(done);
+      } catch (error) {
+        // Last line of defence: whatever is wrong with this action, the rest still plays.
+        state.warnings.push(`${where}: could not be shown (${error instanceof Error ? error.message : String(error)}), so it was skipped`);
+      }
     });
     state.stepActions.push(resolved);
   }
