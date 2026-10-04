@@ -1,5 +1,5 @@
-// FAKE DATA, not real AI output: a small manual with one step of every kind the player must handle.
-// Stands in for buildSceneManual(gold KALLAX) until KAR-01 / KAR-02 / AJI-03 land. See fake-data/README.md.
+// FAKE DATA, not real AI output: a small manual with the step kinds the gold KALLAX manual does not have
+// (sub-assembly, failed, missing diagram, geometry trap). It has no geometry. See fake-data/README.md.
 import type { SceneManual } from "@/player/tempContracts";
 
 const CROPS = "/fake-data/crops";
@@ -15,7 +15,8 @@ export const fakeManual: SceneManual = {
     { id: "S1", label: "Shelf 1", kind: "panel", count: 1, shape: "box", features: [{ type: "holes", face: "left" }] },
     { id: "dowel", ikeaNumber: "101339", label: "Wooden dowel", kind: "dowel", count: 22, shape: "cylinder", hardwareMm: { length: 30, diameter: 8 }, features: [] },
     { id: "screw", ikeaNumber: "104321", label: "Screw", kind: "screw", count: 8, shape: "cylinder", hardwareMm: { length: 50, diameter: 5 }, features: [] },
-    { id: "drawer", label: "Drawer", kind: "other", count: 2, shape: "box", features: [] },
+    { id: "drawer_1", label: "Drawer 1", kind: "other", count: 1, shape: "box", features: [] },
+    { id: "drawer_2", label: "Drawer 2", kind: "other", count: 1, shape: "box", features: [] },
   ],
   steps: [
     {

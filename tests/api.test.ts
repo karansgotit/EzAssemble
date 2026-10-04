@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { type ApiDeps, createApi } from "@/client/api";
 import { createMockApi } from "@/client/api.mock";
-import { fakeSavedManual } from "@/fake-data/savedManual";
-import { checkPartsLayout, checkStep, placedPartsAfterStep, SavedManual } from "@/schema";
+import { saved as gold } from "./helpers/schemaFixtures";
 
 const page = { pageType: "steps", steps: [{ stepNumber: 3, box: [35, 20, 340, 980] }] };
 const okBody = { ok: true, data: page, attempts: 1, usage: [{ model: "m", inputTokens: 10, outputTokens: 5, ms: 900 }] };
@@ -117,7 +116,7 @@ describe("createApi", () => {
   });
 
   it("sends a parts request that already fits the budget unchanged", async () => {
-    const layout = { ok: true, data: fakeSavedManual.layout, attempts: 1, usage: [] };
+    const layout = { ok: true, data: gold.layout, attempts: 1, usage: [] };
     const { deps, calls } = fakeDeps(json(layout));
     const parts = { title: "KALLAX", productSizeCm: [77, 147, 39] as [number, number, number], partsPages: ["p"], cover: "c", stepThumbs: ["t"] };
     expect((await createApi(deps).parts(parts)).ok).toBe(true);
@@ -126,7 +125,7 @@ describe("createApi", () => {
 
   it("explains that saving only works locally on a 404", async () => {
     const { deps } = fakeDeps(new Response("", { status: 404 }));
-    const result = await createApi(deps).saveManual({ manual: fakeSavedManual, crops: [] });
+    const result = await createApi(deps).saveManual({ manual: gold, crops: [] });
     expect(result.ok).toBe(false);
     expect(result.error).toContain("only works when running locally");
   });
@@ -137,34 +136,21 @@ describe("createMockApi", () => {
   const stepRequest = (stepNumber: number) => ({ image: "abc", stepNumber, parts: [], placedPartIds: [], previousInstructions: [] });
 
   it("answers each call from the saved manual", async () => {
-    const api = createMockApi(fakeSavedManual, instant);
-    expect(await api.indexPage({ image: "abc", pageNumber: 3 })).toMatchObject({ ok: true, data: fakeSavedManual.pages[2] });
-    expect(await api.parts({ title: "x", productSizeCm: [1, 1, 1], partsPages: ["p"], cover: "c", stepThumbs: [] })).toMatchObject({ ok: true, data: fakeSavedManual.layout });
+    const api = createMockApi(gold, instant);
+    expect(await api.indexPage({ image: "abc", pageNumber: 9 })).toMatchObject({ ok: true, data: gold.pages[8] });
+    expect(await api.parts({ title: "x", productSizeCm: [1, 1, 1], partsPages: ["p"], cover: "c", stepThumbs: [] })).toMatchObject({ ok: true, data: gold.layout });
     expect(await api.analyzeStep(stepRequest(2))).toMatchObject({ ok: true, data: { stepNumber: 2 } });
   });
 
   it("fails the step named by mockFail, and only that one", async () => {
-    const api = createMockApi(fakeSavedManual, { ...instant, failStep: 2 });
+    const api = createMockApi(gold, { ...instant, failStep: 2 });
     expect((await api.analyzeStep(stepRequest(2))).ok).toBe(false);
     expect((await api.analyzeStep(stepRequest(1))).ok).toBe(true);
   });
 
   it("returns ok: false for a page or step the manual does not have", async () => {
-    const api = createMockApi(fakeSavedManual, instant);
+    const api = createMockApi(gold, instant);
     expect((await api.indexPage({ image: "abc", pageNumber: 99 })).ok).toBe(false);
     expect((await api.analyzeStep(stepRequest(99))).ok).toBe(false);
-  });
-});
-
-describe("fakeSavedManual", () => {
-  it("is a valid SavedManual that passes the semantic checks", () => {
-    const manual = SavedManual.parse(fakeSavedManual);
-    expect(checkPartsLayout(manual.layout)).toEqual([]);
-    let placed: string[] = [];
-    for (const saved of manual.steps) {
-      if (saved.status !== "ok") continue;
-      expect(checkStep(saved.step, manual.layout.parts, placed)).toEqual([]);
-      placed = placedPartsAfterStep(saved.step, manual.layout.parts, placed);
-    }
   });
 });
