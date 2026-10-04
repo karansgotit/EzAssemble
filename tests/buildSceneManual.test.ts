@@ -32,7 +32,9 @@ describe("buildSceneManual on gold KALLAX", () => {
     expect(manual.buildSizeCm).toEqual([147, 39, 77]);
     expect(manual.buildOrientation).toBe("on-back");
     expect(manual.id).toBe(scene.id);
-    expect(manual.steps).toEqual(scene.steps);
+    // The fixture holds only what the manual says; the "possible mistake" traps are added here.
+    const withoutDerived = manual.steps.map(({ trap, ...step }) => (trap?.source === "geometry" ? step : { ...step, ...(trap && { trap }) }));
+    expect(withoutDerived).toEqual(scene.steps);
   });
 
   it("is a valid SceneManual that plays every step with no skipped action", () => {
@@ -46,7 +48,12 @@ describe("buildSceneManual on gold KALLAX", () => {
     expect(manual.steps[0].trap).toEqual({
       part: "L1", mustFace: "front", wrong: "flipped-horizontal", hint: "Drilled holes face inward", source: "manual", autoplay: true,
     });
-    expect(manual.steps[2].trap).toBeUndefined();
+    expect(manual.steps[1].trap).toBeUndefined();
+  });
+
+  it("adds the possible mistakes the geometry proves (AJI-05)", () => {
+    expect(manual.steps[2].trap).toMatchObject({ part: "S1", source: "geometry", autoplay: true });
+    expect(manual.steps[5].trap).toMatchObject({ part: "S2", source: "geometry", autoplay: false });
   });
 
   it("builds crop URLs whether or not the base ends with a slash", () => {
