@@ -36,7 +36,7 @@ A user uploads an IKEA assembly manual PDF (scope: IKEA only). **In the browser*
 
 **Why split it like this?**
 - **Our Google Cloud credentials must never reach the browser.** Anyone can read code that runs in a browser, so all Gemini calls happen on the server. We call Gemini through **Vertex AI**, Google Cloud's AI service, because our $300 CAD of credits are Google Cloud credits.
-- **Heavy image work stays in the browser** (PDF rendering, cropping). That keeps the server simple, and each request small enough for Vercel's limits (about 4.5 MB per request body).
+- **Heavy image work stays in the browser** (PDF rendering, cropping). That keeps the server simple. Before sending, the client enforces a 4,000,000-byte UTF-8 JSON budget, below Vercel's 4.5 MB body limit. `/api/parts` uses `preparePartsRequest` to shrink the entire image set; dimensions alone do not enforce this limit.
 - **3D runs in the browser,** because that's where the screen and the graphics card are.
 - **The server is stateless:** it remembers nothing between requests. No database. Everything a request needs is sent with it.
 
@@ -168,15 +168,7 @@ export const Verb = z.enum(["insert", "attach", "screw", "lock", "place", "flip"
 ### 4.2 Call 1 output, the page index (`schema/pageIndex.ts`)
 
 ```ts
-export const PageIndex = z.object({
-  pageType: z.enum(["cover", "warning", "tools", "parts", "steps", "other"]),
-  steps: z.array(z.object({
-    stepNumber: z.number().int().min(1),
-    box: z.tuple([z.number(), z.number(), z.number(), z.number()]), // [ymin, xmin, ymax, xmax], 0–1000
-    variant: z.string().optional(),       // e.g. "vertical" / "horizontal" for branching steps
-    subassembly: z.string().optional(),   // e.g. "drawer" if this step builds a separate unit
-  })),
-});
+import { PageIndex } from "@/schema"; // exact schema: CONTRACTS §2.1
 ```
 **Example (KALLAX page 9, which holds steps 3, 4 and 5):**
 ```json
@@ -188,26 +180,10 @@ export const PageIndex = z.object({
 ```
 The box numbers are scaled 0–1000, the format Gemini natively uses for bounding boxes. To get pixels: `pixelY = ymin / 1000 * imageHeight`.
 
-### 4.3 Call 2 output, parts and rough layout (`schema/parts.ts`)
+### 4.3 Call 2 output, parts and rough layout (`schema/ai/partsLayout.ts`)
 
 ```ts
-export const Part = z.object({
-  id: z.string(),                         // AI-invented, stable for the whole manual
-  ikeaNumber: z.string().optional(),      // printed on hardware, e.g. "101339"
-  label: z.string(),
-  kind: z.enum(["panel", "leg", "dowel", "screw", "cam", "camBolt", "nail", "other"]),
-  count: z.number().int().min(1),
-  shape: z.enum(["box", "cylinder"]),
-  sizeFrac: Vec3.optional(),              // panels: size as a fraction of the product size
-  homeFrac: Vec3.optional(),              // panels: rough centre in the finished product, 0–1
-  features: z.array(z.object({                // which face has drilled holes / the finished edge
-    type: z.enum(["holes", "finished-edge"]), face: Face })).default([]),
-  hardwareMm: z.object({ length: z.number(), diameter: z.number() }).optional(),
-});
-export const PartsLayout = z.object({
-  buildOrientation: z.enum(["upright", "on-back", "upside-down", "on-side"]),
-  parts: z.array(Part),
-});
+import { AiPart, PartsLayout } from "@/schema"; // exact schemas: CONTRACTS §2.2
 ```
 **Example (two KALLAX parts):**
 ```json
@@ -218,36 +194,12 @@ export const PartsLayout = z.object({
     { "id": "dowel", "ikeaNumber": "101339", "label": "Wooden dowel", "kind": "dowel",
       "count": 22, "shape": "cylinder", "hardwareMm": { "length": 30, "diameter": 8 } } ] }
 ```
-These are **rough** numbers. `snapLayout()` (§9) cleans them into exact centimetres.
+These are **rough** numbers. `snapLayout()` (§9) cleans them into exact centimetres. Each separately positioned solid (including repeated legs and finished drawers) has a distinct id and count 1; hardware alone can share one id with multiple instances.
 
-### 4.4 Call 3 output, one step (`schema/step.ts`)
+### 4.4 Call 3 output, one step (`schema/ai/step.ts`)
 
 ```ts
-export const Action = z.object({
-  verb: Verb,
-  part: z.string(),                 // part id, or "assembly" for flip
-  count: z.number().int().min(1),
-  target: z.string().optional(),    // the part it goes into / against
-  face: Face.optional(),            // which face OF THE TARGET
-  for: z.string().optional(),       // hardware: which part these dowels/screws will hold
-  at: z.enum(["start", "middle", "end", "all"]).optional(),
-  flipMode: z.enum(["stand-up", "turn-over"]).optional(),
-});
-export const Step = z.object({
-  stepNumber: z.number().int(),
-  variant: z.string().optional(),
-  kind: z.enum(["assembly", "info", "subassembly"]),
-  sourceSteps: z.array(z.number()).optional(),   // subassembly: original manual step numbers
-  instruction: z.string().min(10).max(220),
-  actions: z.array(Action).max(4),
-  orientationTrap: z.object({          // ONLY when the manual itself draws the mistake
-    part: z.string(), mustFace: Face,
-    wrong: z.enum(["flipped-vertical", "flipped-horizontal", "rotated-90"]),
-    hint: z.string().max(80),
-    source: z.literal("manual"),
-  }).optional(),
-  confidence: z.enum(["high", "medium", "low"]),
-});
+import { Action, Step } from "@/schema"; // AI steps are assembly/info only; CONTRACTS §2.3
 ```
 **Example (KALLAX step 3):**
 ```json
@@ -258,21 +210,10 @@ export const Step = z.object({
     { "verb": "place",  "part": "S1",    "count": 1, "target": "L1", "face": "front" } ] }
 ```
 
-### 4.5 What we save to disk (`schema/manual.ts`)
+### 4.5 What we save to disk (`schema/saved.ts`)
 
 ```ts
-export const SavedManual = z.object({
-  id: z.string(), title: z.string(),
-  productSizeCm: Vec3,                         // typed in by the uploader
-  pages: z.array(PageIndex),                   // raw call-1 output per page
-  layout: PartsLayout,                         // raw call-2 output
-  steps: z.array(Step.extend({                 // raw call-3 output per step
-    status: z.enum(["ok", "failed"]),
-    crop: z.string(),                          // "crops/step-03.jpg"
-    attempts: z.number(),
-  })),
-  createdAt: z.string(),
-});
+import { SavedManual, SavedStep } from "@/schema"; // status-discriminated wrappers; CONTRACTS §3
 ```
 
 **Important principle: we store the raw AI output, not the computed geometry.** Geometry (`snapLayout`, `resolveScene`) is recomputed in the browser every time a manual opens. So if Ajit improves the snapping code at hour 15, every saved manual improves automatically, without calling Gemini again.
@@ -303,10 +244,10 @@ USER drops kallax.pdf, types size 77 × 147 × 39 cm
         ▼
 [A4] for each step: crop(pageImage, box) → step-NN.jpg                  (browser, canvas)
         ▼
-[A5] POST /api/parts { partsPages[], coverPage, smallCrops[], productSizeCm }
+[A5] preparePartsRequest → POST /api/parts { title, partsPages[], cover, stepThumbs[], productSizeCm }
         server → Gemini (call 2) → Zod + semantic checks → PartsLayout
         ▼
-[A6] snapLayout(PartsLayout, productSizeCm) → exact cm geometry          (browser, our code)
+[A6] snapLayout(PartsLayout, buildSizeCm) → exact cm geometry          (browser, our code)
         if it reports overlaps → re-call /api/parts with the errors (max 2 times)
         ▼
 [A7] for step 1..19, IN ORDER:  POST /api/analyze-step {
@@ -333,32 +274,40 @@ Pages, in A2, have no such dependency, so they run 4 at a time.
 - Parts: about 10 s.
 - Steps: about 2.5 min.
 
-### Code sketch: the orchestrator (`client/processManual.ts`)
+### Code sketch: sequential step analysis (`client/processManual.ts`)
+
+After indexing/cropping and a successful parts request (prepared with `preparePartsRequest`), analyze steps using the stored wrappers and shared placement rule. Map upright dimensions to the build frame before calling `snapLayout`. Failed steps do not advance the assembled state.
 
 ```ts
-export async function processManual(file: File, productSizeCm: Vec3, onUpdate: (d: Draft) => void) {
-  const pages = await rasterize(file);                                   // A1
-  const index = await mapLimit(pages, 4, p => api.indexPage(p.jpegBase64)); // A2
-  const stepRefs = pickVariantAndValidate(index);                        // A3
-  const crops = await Promise.all(stepRefs.map(r => crop(pages[r.page], r.box))); // A4
-
-  let layout = await api.parts({ partsPages: …, cover: …, smallCrops: …, productSizeCm }); // A5
-  let snapped = snapLayout(layout, productSizeCm);                       // A6
-  if (!snapped.ok) layout = await api.parts({ …, previousErrors: snapped.errors });
-
+async function analyzeCrops(
+  api: Api, layout: PartsLayout,
+  crops: { stepNumber: number; path: string; jpegBase64: string }[],
+  onStep: (step: SavedStep) => void,
+): Promise<SavedStep[]> {
   const steps: SavedStep[] = [];
-  for (const [i, c] of crops.entries()) {                                // A7
-    const res = await api.analyzeStep({
-      image: c.jpegBase64, parts: layout.parts,
-      placedPartIds: placedSoFar(steps), previousInstructions: steps.map(s => s.instruction),
-      stepNumber: stepRefs[i].stepNumber });
-    steps.push(res.ok ? { ...res.data, status: "ok" } : failedStep(stepRefs[i]));
-    onUpdate({ layout, steps, crops });                                  // UI re-renders
+  let placedPartIds: string[] = [];
+  const previousInstructions: string[] = [];
+  for (const crop of crops) {
+    const result = await api.analyzeStep({
+      image: crop.jpegBase64, stepNumber: crop.stepNumber, parts: layout.parts,
+      placedPartIds, previousInstructions,
+    });
+    const saved: SavedStep = result.ok
+      ? { status: "ok", step: result.data, crop: crop.path, attempts: result.attempts }
+      : { status: "failed", stepNumber: crop.stepNumber, crop: crop.path,
+          attempts: result.attempts, errors: result.errors };
+    steps.push(saved);
+    if (result.ok) {
+      placedPartIds = placedPartsAfterStep(result.data, layout.parts, placedPartIds);
+      previousInstructions.push(result.data.instruction);
+    }
+    onStep(saved);
   }
-  return markInconsistentSteps({ layout, steps, crops });                // A8
+  return steps;
 }
 ```
 
+The full orchestrator also inserts subassembly cards, emits complete `SavedManual` updates, and applies cumulative-count and consistency checks. Those steps and the exact public function signature are specified in CONTRACTS §6.
 ---
 
 ## 6. Inside an API route (server side)
@@ -445,7 +394,7 @@ export async function callStructured<T>({ prompt, images, schema, semanticCheck,
 
 - `action.part` / `target` / `for` must be ids that exist in `parts`.
 - `insert` / `screw` / `lock` only on hardware; `attach` / `place` only on panels.
-- `target` must already be placed (in `placedPartIds`) or be placed earlier in this same step.
+- An unplaced non-hardware target is introduced implicitly on its first place/attach/insert/screw reference. Use the shared `implicitTargetId` / `placedPartsAfterStep` helpers; a lock requires an already placed target. A later explicit placement reuses the implicit solid.
 - An `assembly` step needs at least 1 action.
 - `orientationTrap.part` must appear in this step's actions.
 - Each failure is returned as a plain sentence, e.g. `"action 2: target 'L3' is not a known part id"`, which is exactly what we feed back to Gemini on retry.
@@ -502,7 +451,7 @@ app/m/[id]/page.tsx  →  fetch("/manuals/kallax/manual.json")   (static file, i
 SavedManual.parse(json)          ← Zod check; if invalid → red error screen, never a blank page
    │
    ▼
-const geometry = snapLayout(manual.layout, manual.productSizeCm)   ← deterministic, ~1 ms
+const geometry = snapLayout(manual.layout, buildSizeCm)   ← deterministic, ~1 ms
    │
    ▼
 <StepPlayer manual={manual} geometry={geometry} />
@@ -531,7 +480,7 @@ No global state library is needed: one component owns this state and passes it d
 **The problem:** Gemini says shelf 1's centre is at `[0.26, 0.5, 0.5]` of the product and its size is `[0.02, 1.0, 0.9]`. Raw, that gives a shelf that's slightly too thick, floats 3 mm away from the side panel, and pokes through the divider.
 
 **The algorithm** (pure function, unit-tested):
-1. **Scale:** `centreCm = homeFrac × productSizeCm`; `sizeCm = sizeFrac × productSizeCm`. These sizes are in the **build frame** (as built in the manual, e.g. lying on its back).
+1. **Scale:** map upright product dimensions into `buildSizeCm` using CONTRACTS §4.1, then `centreCm = homeFrac × buildSizeCm`; `sizeCm = sizeFrac × buildSizeCm`. These sizes are in the **build frame** (as built in the manual, e.g. lying on its back).
 2. **Thickness classes:** each panel's thinnest dimension snaps to the nearest of `[1.2, 1.6, 1.8, 2.5, 3.8]` cm.
 3. **Snap to the outer box:** if a panel face is within 4% of the product's boundary, move the panel flush to it.
 4. **Snap to neighbours:** for every pair of panels, if facing faces are within 4% of the product size, close the gap. Repeat until nothing moves (at most 5 passes).

@@ -78,6 +78,7 @@
 
 **Do**
 - [ ] `client/api.ts`: typed `fetch` wrappers for the 4 routes (CONTRACTS §5).
+  - Before `/api/parts`, await `preparePartsRequest` from `client/partsRequest.ts`; validate every other AI request with its request schema before fetching. Never send a body over the shared 4,000,000-byte budget.
   - Retry once after 2 s on a network error or `5xx`; **don't** retry `ok: false`.
   - 60 s timeout (20 s for re-analyze, via a parameter).
 - [ ] `client/api.mock.ts`: same interface, backed by gold fixtures.
@@ -111,7 +112,7 @@
 - [ ] **Sub-assembly merge:** consecutive steps with the same `subassembly` label → one `SavedStep { status: "subassembly", sourceSteps, label, message }`, using the template from CONTRACTS §3. Those steps are not analysed.
 - [ ] Crop the steps; make 512 px thumbs.
 - [ ] `/api/parts` with the parts pages + cover + thumbs + size → `snapLayout` (product size mapped to the build frame). If not `ok`, re-call once with `previousErrors`.
-- [ ] Analyse the remaining steps **in order**, passing `placedPartIds` (from previous ok steps' place/attach actions) and `previousInstructions`.
+- [ ] Analyse the remaining steps **in order**, passing `placedPartIds` (updated by `placedPartsAfterStep` from `schema/placement.ts`, including implicit target foundations) and `previousInstructions`.
   - Emit a `manual` event after each step (streaming UI).
   - `ok: false` → a `failed` SavedStep.
 - [ ] **Finish:**

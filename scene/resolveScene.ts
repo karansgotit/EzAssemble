@@ -1,4 +1,5 @@
 import { HARDWARE_SCALE, SCREW_TURNS } from "./constants";
+import { implicitTargetId } from "@/schema/placement";
 import {
   FACE_NORMALS, NO_ROTATION, add, alongNormal, boundsOf, faceRect, flipRotation, jointStrip,
   pointsOnFace, scale, settleOnFloor, type Bounds, type Cuboid, type Quat,
@@ -99,6 +100,13 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     const target = action.target === undefined ? undefined : parts.get(action.target);
     if (action.target !== undefined && !target) return skip(`target "${action.target}" is not in the parts list`);
     const targetBox = target && !isHardware(target) ? cuboidOf(target) : undefined;
+    const introduceTarget = (): void => {
+      const placedIds = [...state.placed.values()].map(piece => piece.partId);
+      if (target && targetBox && implicitTargetId(action, manual.parts, placedIds)) {
+        putSolid(target, targetBox, instanceId(target.id, 1));
+        used.set(target.id, 1);
+      }
+    };
 
     if (action.verb === "lock") {
       const ids = (inserted.get(part.id) ?? []).slice(-action.count);
@@ -111,12 +119,15 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     }
 
     if (!isHardware(part)) {
+      if (part.count !== 1 || action.count !== 1) return skip(`each solid needs its own id and position with count 1`);
       const box = cuboidOf(part);
       if (!box) return skip(`part "${part.id}" has no size or position`);
-      const ids = claim(part, action.count);
+      // An implicit foundation can later receive an explicit placement/attachment action.
+      const existingId = instanceId(part.id, 1);
+      const ids = state.placed.has(existingId) ? [existingId] : claim(part, action.count);
       if (!ids) return skip(`more "${part.id}" are used than the ${part.count} in the box`);
       // The first panel something is built onto is already lying there, even with no action of its own.
-      if (target && targetBox && !state.placed.has(instanceId(target.id, 1))) putSolid(target, targetBox, instanceId(target.id, 1));
+      introduceTarget();
       for (const id of ids) putSolid(part, box, id);
       return { action, ids, normal };
     }
@@ -132,7 +143,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     }
     const ids = claim(part, action.count);
     if (!ids) return skip(`more "${part.id}" are used than the ${part.count} in the box`);
-    if (!state.placed.has(instanceId(target.id, 1))) putSolid(target, targetBox, instanceId(target.id, 1));
+    introduceTarget();
 
     const points = strip
       ? pointsOnFace(strip, action.count, ...JOINT_SPREAD)

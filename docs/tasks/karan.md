@@ -19,7 +19,8 @@
   - `schema/ai/pageIndex.ts`, `schema/ai/partsLayout.ts`, `schema/ai/step.ts`
   - `schema/saved.ts`, `schema/scene.ts`, `schema/api.ts`
 - [ ] Add the request schemas: `IndexPageRequest`, `PartsRequest`, `AnalyzeStepRequest`, `SaveManualRequest`, `AskRequest`.
-- [ ] Add `schema/index.ts` re-exporting everything.
+- [ ] Add `schema/index.ts` re-exporting everything, including inferred types for every schema.
+- [ ] Keep the contract-drift test green. Box range/order, non-step page rules, distinct solid ids and total request-byte limits are part of the contract.
 - [ ] Tests (`tests/schema.test.ts`):
   - one valid and one invalid example per schema (e.g. `box` out of range, unknown verb, `kind: "subassembly"` from AI rejected);
   - `SavedStep` accepts all 3 statuses.
@@ -104,7 +105,7 @@
 **Labels:** pipeline, P0 · **Hours:** 3:30–4:30 · **Depends on:** KAR-01
 
 **Do**
-- [ ] `checkPartsLayout(layout): string[]` and `checkStep(step, parts, placedPartIds): string[]`, implementing every rule in CONTRACTS.md §2.4, with messages written as plain sentences.
+- [ ] `checkPartsLayout(layout): string[]` and `checkStep(step, parts, placedPartIds): string[]`, implementing every rule in CONTRACTS.md §2.4, with messages written as plain sentences. Foundation/placement helpers and basic checks already land with KAR-01; extend those rather than introducing a second placement rule.
 - [ ] `checkCumulativeCounts(steps, parts): { stepNumber, message }[]`, used by the orchestrator after all steps.
 - [ ] Pure functions in `schema/checks.ts` (no `server-only`), so both the server routes and Smit's browser orchestrator can import them.
 - [ ] Tests: one passing and one failing case per rule; gold KALLAX passes everything.
