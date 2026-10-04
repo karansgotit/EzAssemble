@@ -8,11 +8,13 @@ You are reading a wordless IKEA assembly manual for "{{title}}". List every part
 ## Parts
 - One entry per DISTINCT solid piece (panel, leg, finished sub-assembled unit such as a drawer): give each its own snake_case id, e.g. "long_panel_1", "long_panel_2", "shelf_1", "drawer_1", "drawer_2", and count 1. Two identical shelves are two entries.
 - Hardware (dowel, screw, cam, camBolt, nail) is ONE entry per type with its total count from the parts list, e.g. id "dowel", count 22. Use the printed number as ikeaNumber.
+- Every small fitting that comes with a count ("8x") is hardware, even if it is none of those five: use the nearest kind. Pins and threaded sleeves → dowel; screws and bolts driven with a tool → screw; round discs such as nuts, washers and cam locks → cam; threaded rods or bolts that a cam or nut grips → camBolt; anything hammered in → nail. Keep its own id and printed count, e.g. id "threaded_sleeve", kind "dowel", count 8.
+- kind "other" is only for one large solid piece (a brace, bracket, drawer or rail) and always has count 1; repeated large pieces are separate entries ("cross_brace_1", "cross_brace_2").
 - label: a short plain name (at most 40 characters), e.g. "Long side panel".
 - shape: "box" for solids, "cylinder" for dowels, screws, cams and bolts.
 - hardwareMm (hardware only): approximate length and diameter in mm.
 - Never use the id "assembly"; it is reserved.
-- Leave out accessories that are none of these kinds and are not built into the furniture: felt pads, wall brackets, covers, wall plugs, tools such as the Allen key or handle, and any screws that only fix those accessories (e.g. bracket screws). They are not animated.
+- Leave out accessories that are none of these kinds and are not built into the furniture: felt pads, foot glides, wall brackets, covers, wall plugs, tools such as the Allen key or handle, and any screws that only fix those accessories (e.g. bracket screws). They are not animated.
 
 ## The build frame
 The furniture's finished (upright) size is {{productSizeCm}} cm (width × height × depth).
