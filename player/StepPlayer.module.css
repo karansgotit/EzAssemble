@@ -107,7 +107,7 @@
 
 .scene {
   position: relative;
-  min-height: 24rem;
+  height: 28rem; /* a set height: the 3D canvas fills its parent and collapses without one */
   padding: 0;
   overflow: hidden;
 }
