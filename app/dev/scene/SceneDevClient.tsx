@@ -9,14 +9,15 @@ const AssemblyScene = dynamic(() => import("@/scene/AssemblyScene").then((m) => 
 const SPEEDS = [0.5, 1, 2] as const;
 
 // Bare controls for exercising <AssemblyScene> on its own. The real player is player/StepPlayer.
-export function SceneDevClient({ manual }: { manual: SceneManual }) {
-  const [stepIndex, setStepIndex] = useState(0);
+export function SceneDevClient({ manual, startStep = 1, startT = null }: { manual: SceneManual; startStep?: number; startT?: number | null }) {
+  const [stepIndex, setStepIndex] = useState(startStep - 1);
   const [playKey, setPlayKey] = useState(0);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(startT === null);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
-  const [scrubT, setScrubT] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [showTrap, setShowTrap] = useState(true);
+  const [scrubT, setScrubT] = useState<number | null>(startT);
+  const [progress, setProgress] = useState(startT ?? 0);
+  // A fixed moment is a moment of the step's own motion, so the ghost is left out of it.
+  const [showTrap, setShowTrap] = useState(startT === null);
   const step = manual.steps[stepIndex];
 
   const restart = (index: number, trap = true) => {

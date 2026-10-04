@@ -21,8 +21,11 @@ async function loadFixture(name: string): Promise<SceneManual | string> {
   }
 }
 
-export default async function SceneDevPage({ searchParams }: { searchParams: Promise<{ fixture?: string }> }) {
-  const { fixture = "kallax" } = await searchParams;
+// ?step=3&t=1 opens step 3 at the end of its animation, with no controls: used for screenshots.
+type Query = { fixture?: string; step?: string; t?: string };
+
+export default async function SceneDevPage({ searchParams }: { searchParams: Promise<Query> }) {
+  const { fixture = "kallax", step, t } = await searchParams;
   const manual = await loadFixture(fixture);
   if (typeof manual === "string") {
     return (
@@ -32,5 +35,7 @@ export default async function SceneDevPage({ searchParams }: { searchParams: Pro
       </main>
     );
   }
-  return <SceneDevClient manual={manual} />;
+  const startStep = Math.max(1, Math.min(manual.steps.length, Math.round(Number(step)) || 1));
+  const startT = t === undefined || !Number.isFinite(Number(t)) ? null : Math.max(0, Math.min(1, Number(t)));
+  return <SceneDevClient manual={manual} startStep={startStep} startT={startT} />;
 }

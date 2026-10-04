@@ -29,18 +29,50 @@ export const TRAP_FADE_SECONDS = 0.4; // fading away
 export const TRAP_SECONDS = TRAP_WRONG_SECONDS + TRAP_TURN_SECONDS + TRAP_FADE_SECONDS;
 export const GHOST_OPACITY = 0.45;
 
-// Placeholders until the Claude Design tokens land (AJI-11).
-export const COLORS = {
-  background: "#fbfaf7",
-  floor: "#e9e7df",
-  current: "#ffd23f",
-  previous: "#ffffff",
-  edge: "#9b9b9b",
-  edgeStrong: "#111111",
-  guide: "#0058a3",
-  wood: "#d9b98a",
-  steel: "#b8bec6",
-  wrong: "#e5484d",
-  right: "#30a46c",
-  hole: "#333333",
-};
+// Line weights, in screen pixels. The part being added is drawn heavier, like the bold
+// outline a manual gives the piece in your hand.
+export const EDGE_WIDTH = { current: 2.4, previous: 1.1, hardware: 1.3, ghost: 2.2 };
+export const GUIDE_WIDTH = 2.4;
+export const GUIDE_DASH_CM: [number, number] = [2.2, 1.4]; // dash, gap
+export const GHOST_DASH_CM: [number, number] = [2.4, 1.6]; // the wrong pose is drawn dashed
+export const SHADOW_OPACITY = 0.3;
+
+// Each scene colour: the design token it is read from (docs/design/tokens.css) and the
+// designed value, used when the page does not define that token.
+const SCENE_TOKENS = {
+  background: ["--scene-bg", "#FAFAF8"],
+  floor: ["--scene-floor", "#ECEDE8"],
+  current: ["--scene-current", "#C9D6FF"],
+  previous: ["--scene-part", "#FFFFFF"],
+  edge: ["--scene-part-edge", "#8B9096"],
+  edgeStrong: ["--scene-current-edge", "#14161A"],
+  guide: ["--scene-guide", "#2447E0"],
+  wood: ["--scene-wood", "#D8B98A"],
+  steel: ["--scene-steel", "#B4BAC2"],
+  wrong: ["--scene-wrong", "#C8321E"],
+  right: ["--scene-right", "#1B7A48"],
+  hole: ["--scene-hole", "#2A2D33"],
+} as const;
+
+export type SceneColors = Record<keyof typeof SCENE_TOKENS, string>;
+const colorNames = Object.keys(SCENE_TOKENS) as (keyof typeof SCENE_TOKENS)[];
+
+export const COLORS = Object.fromEntries(colorNames.map((name) => [name, SCENE_TOKENS[name][1]])) as SceneColors;
+
+const LOOKS_LIKE_A_COLOR = /^(#[0-9a-f]{3}|#[0-9a-f]{6}|#[0-9a-f]{8}|(rgb|hsl)a?\([^)]+\))$/i;
+
+// The scene colours as the page defines them. `getVariable` returns a CSS variable's value
+// ("" when unset); anything missing or not a colour falls back to the designed value.
+export function readSceneColors(getVariable: (name: string) => string): SceneColors {
+  const read = (name: keyof typeof SCENE_TOKENS): string => {
+    const [token, fallback] = SCENE_TOKENS[name];
+    let value = "";
+    try {
+      value = String(getVariable(token) ?? "").trim();
+    } catch {
+      value = "";
+    }
+    return LOOKS_LIKE_A_COLOR.test(value) ? value : fallback;
+  };
+  return Object.fromEntries(colorNames.map((name) => [name, read(name)])) as SceneColors;
+}
