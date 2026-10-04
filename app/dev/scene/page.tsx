@@ -1,9 +1,34 @@
-// Dev-only page. Renders <AssemblyScene> (via next/dynamic, ssr: false) once AJI-02 lands.
-export default function SceneDevPage() {
-  return (
-    <main className="placeholder">
-      <h1>Scene dev page</h1>
-      <p>Empty for now. The 3D scene is mounted here after AJI-02.</p>
-    </main>
-  );
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import type { SceneManual } from "@/scene/types";
+import { SceneDevClient } from "./SceneDevClient";
+
+// Dev-only page: plays fixtures/<fixture>.scene.json in <AssemblyScene>. Read per request, so the
+// app still builds while that fixture does not exist yet (KAR-02).
+export const dynamic = "force-dynamic";
+
+async function loadFixture(name: string): Promise<SceneManual | string> {
+  if (!/^[a-z0-9-]{1,40}$/.test(name)) return `"${name}" is not a valid fixture name.`;
+  try {
+    const file = path.join(process.cwd(), "fixtures", `${name}.scene.json`);
+    const manual = JSON.parse(await readFile(file, "utf8")) as Partial<SceneManual>;
+    if (!Array.isArray(manual.parts) || !Array.isArray(manual.steps)) return `fixtures/${name}.scene.json is not a scene manual.`;
+    return manual as SceneManual;
+  } catch {
+    return `fixtures/${name}.scene.json was not found or is not valid JSON.`;
+  }
+}
+
+export default async function SceneDevPage({ searchParams }: { searchParams: Promise<{ fixture?: string }> }) {
+  const { fixture = "kallax" } = await searchParams;
+  const manual = await loadFixture(fixture);
+  if (typeof manual === "string") {
+    return (
+      <main className="placeholder">
+        <h1>Scene dev page</h1>
+        <p>{manual}</p>
+      </main>
+    );
+  }
+  return <SceneDevClient manual={manual} />;
 }
