@@ -1,0 +1,41 @@
+/* Placeholder tokens. The real design tokens from Claude Design land here in SMI-11. */
+:root {
+  --color-bg: #ffffff;
+  --color-text: #111111;
+  --color-muted: #555555;
+  --color-accent: #0058a3;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+.placeholder {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.placeholder p {
+  color: var(--color-muted);
+}
