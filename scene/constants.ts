@@ -22,6 +22,13 @@ export const HARDWARE_APPROACH_CM = 6; // how far out hardware starts, at HARDWA
 export const PANEL_APPROACH_CM = 10; // plus 35% of the panel's own depth
 export const PANEL_APPROACH_FRAC = 0.35;
 
+// The wrong-vs-right ghost, shown before a step's own motion.
+export const TRAP_WRONG_SECONDS = 1.2; // held in the wrong pose
+export const TRAP_TURN_SECONDS = 1; // turning to the right pose
+export const TRAP_FADE_SECONDS = 0.4; // fading away
+export const TRAP_SECONDS = TRAP_WRONG_SECONDS + TRAP_TURN_SECONDS + TRAP_FADE_SECONDS;
+export const GHOST_OPACITY = 0.45;
+
 // Placeholders until the Claude Design tokens land (AJI-11).
 export const COLORS = {
   background: "#fbfaf7",
@@ -33,4 +40,7 @@ export const COLORS = {
   guide: "#0058a3",
   wood: "#d9b98a",
   steel: "#b8bec6",
+  wrong: "#e5484d",
+  right: "#30a46c",
+  hole: "#333333",
 };

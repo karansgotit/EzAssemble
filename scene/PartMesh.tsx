@@ -2,8 +2,10 @@
 
 import { Edges } from "@react-three/drei";
 import { COLORS } from "./constants";
+import { FeatureMarker } from "./FeatureMarker";
 import type { Placed } from "./resolveScene";
 import type { Pose } from "./tracks";
+import type { Feature } from "./types";
 
 const HEADED = ["screw", "camBolt", "nail"];
 
@@ -14,7 +16,7 @@ function fillOf(piece: Placed, current: boolean): string {
 }
 
 // One piece: a box or cylinder with drawn edges, at the pose it has this frame.
-export function PartMesh({ piece, pose, current }: { piece: Placed; pose: Pose; current: boolean }) {
+export function PartMesh({ piece, pose, current, features = [] }: { piece: Placed; pose: Pose; current: boolean; features?: Feature[] }) {
   const [width, height, depth] = piece.size;
   const solid = piece.shape === "box";
   const metal = fillOf(piece, current) === COLORS.steel;
@@ -35,6 +37,7 @@ export function PartMesh({ piece, pose, current }: { piece: Placed; pose: Pose; 
           />
           <Edges color={edge} lineWidth={current ? 1.7 : 1} transparent={faded} opacity={pose.opacity} />
         </mesh>
+        {solid && features.length > 0 && <FeatureMarker size={piece.size} features={features} opacity={pose.opacity} />}
         {HEADED.includes(piece.kind) && (
           <group position={[0, height / 2, 0]}>
             <mesh>
