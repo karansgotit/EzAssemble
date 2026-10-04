@@ -1,8 +1,8 @@
 # EzAssemble
 
-**Turn a confusing IKEA assembly manual into clear, animated 3D steps.**
+**Turn a confusing furniture assembly manual into clear, animated 3D steps.**
 
-IKEA manuals have no words. Each step is a line drawing with arrows and tiny zoomed-in details, and it is easy to use the wrong piece or put a panel in the wrong way round. EzAssemble takes the manual PDF and, for every step, shows:
+Flat-pack furniture manuals often have no words. Each step is a line drawing with arrows and tiny zoomed-in details, and it is easy to use the wrong piece or put a panel in the wrong way round. EzAssemble takes the manual PDF and, for every step, shows:
 
 - the original diagram from the manual;
 - one plain-English sentence saying what to do;
@@ -26,7 +26,7 @@ All AI calls go through Vertex AI using Gemini 3.8 Flash, from server-only code,
 ## What works
 
 - **Library.** A saved, pre-processed KALLAX 2×4 shelf (19 steps) opens instantly, with no AI calls.
-- **Upload.** Drop in any IKEA manual PDF and watch the steps appear. You can cancel part way. In development, a finished manual can be saved into the library.
+- **Upload.** Drop in an assembly manual PDF and watch the steps appear. You can cancel part way. In development, a finished manual can be saved into the library.
 - **Step player.** Diagram, instruction and 3D scene side by side; arrow keys move between steps; a "show the mistake" replay where there is one; a warning on steps the AI was unsure about; and a single "assembled separately" card for sub-assemblies.
 - **Light and dark themes.**
 - **Accuracy eval.** `npm run eval -- kallax` scores the AI against a hand-checked "gold" copy of the KALLAX manual (`fixtures/kallax.gold.json`).
