@@ -11,8 +11,8 @@ import {
   Step,
 } from "@/schema";
 import goldKallax from "@/fixtures/kallax.gold.json";
-import { isFakeDataOn } from "@/fake-data/toggle";
 import { createMockApi } from "./api.mock";
+import { isMockAiOn } from "./mockMode";
 import { preparePartsRequest } from "./partsRequest";
 
 /** `timeoutMs` defaults to 60 s; re-analyze passes 20 s. `signal` cancels (the upload page's Cancel button). */
@@ -101,12 +101,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/**
- * Development only: when a route has not been built yet (the server answers 404), answer that call from
- * `api` instead, so the routes that do exist can be tried with real AI before all of them are ready.
- */
-export type RouteFallback = { api: Api; missing: Set<string> };
-
 /** One AI route call. Never throws: every problem comes back as `ok: false` with readable errors. */
 async function callAi<T>(
   path: string,
@@ -114,16 +108,9 @@ async function callAi<T>(
   data: z.ZodType<T>,
   opts: CallOptions,
   deps: ApiDeps,
-  fallback?: { missing: Set<string>; call: () => Promise<ApiResult<T>> },
 ): Promise<ApiResult<T>> {
-  if (fallback?.missing.has(path)) return fallback.call(); // already known to be missing: don't ask again
   const sent = await sendWithRetry(path, body, opts, deps);
   if (sent.kind === "failed") return failure(sent.message);
-  if (fallback && sent.response.status === 404) {
-    fallback.missing.add(path);
-    console.warn(`${path} is not built yet; answering from the mock (saved KALLAX data) in development.`);
-    return fallback.call();
-  }
 
   const json = await readJson(sent.response);
   if (!sent.response.ok) {
@@ -143,13 +130,12 @@ async function callAi<T>(
   return { ok: true, data: parsed.data, attempts, usage };
 }
 
-export function createApi(deps: ApiDeps = browserDeps, fallback?: RouteFallback): Api {
-  const or = <T>(call: (api: Api) => Promise<ApiResult<T>>) => fallback && { missing: fallback.missing, call: () => call(fallback.api) };
+export function createApi(deps: ApiDeps = browserDeps): Api {
   return {
     async indexPage(req, opts = {}) {
       const body = IndexPageRequest.safeParse(req);
       if (!body.success) return failure(...issues(body.error));
-      return callAi("/api/index-page", body.data, PageIndex, opts, deps, or((api) => api.indexPage(req, opts)));
+      return callAi("/api/index-page", body.data, PageIndex, opts, deps);
     },
 
     async parts(req, opts = {}) {
@@ -159,13 +145,13 @@ export function createApi(deps: ApiDeps = browserDeps, fallback?: RouteFallback)
       } catch (error) {
         return failure(error instanceof Error ? error.message : "The parts request is invalid.");
       }
-      return callAi("/api/parts", body, PartsLayout, opts, deps, or((api) => api.parts(req, opts)));
+      return callAi("/api/parts", body, PartsLayout, opts, deps);
     },
 
     async analyzeStep(req, opts = {}) {
       const body = AnalyzeStepRequest.safeParse(req);
       if (!body.success) return failure(...issues(body.error));
-      return callAi("/api/analyze-step", body.data, Step, opts, deps, or((api) => api.analyzeStep(req, opts)));
+      return callAi("/api/analyze-step", body.data, Step, opts, deps);
     },
 
     async saveManual(req) {
@@ -185,24 +171,10 @@ export function createApi(deps: ApiDeps = browserDeps, fallback?: RouteFallback)
   };
 }
 
-const missingRoutes = new Set<string>();
-
-/** Routes that turned out not to exist in this session and were answered by the mock (development only). */
-export function mockedRoutes(): string[] {
-  return [...missingRoutes].sort();
-}
-
-/**
- * The API the app should use.
- * - Fake data on (NEXT_PUBLIC_MOCK_AI=1 or the dev badge): the mock, answering from gold KALLAX.
- * - Otherwise the real routes. In development only, a route that is not built yet falls back to the mock,
- *   and is listed by mockedRoutes(). A production build never substitutes mock answers.
- */
+/** The API the app should use: the mock (saved KALLAX answers) in mock mode, otherwise the real routes. */
 export function getApi(): Api {
   const real = createApi();
+  if (!isMockAiOn()) return real;
   const failStep = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("mockFail");
-  const mock = () => createMockApi(SavedManual.parse(goldKallax), { failStep: failStep ? Number(failStep) : undefined, saveManual: real.saveManual });
-  if (isFakeDataOn()) return mock();
-  if (process.env.NODE_ENV === "development") return createApi(browserDeps, { api: mock(), missing: missingRoutes });
-  return real;
+  return createMockApi(SavedManual.parse(goldKallax), { failStep: failStep ? Number(failStep) : undefined, saveManual: real.saveManual });
 }

@@ -1,4 +1,4 @@
-import { canvasToJpegBase64, get2dContext, jpegDataUrl } from "./canvas";
+import { canvasToJpegBase64, get2dContext } from "./canvas";
 
 /** A step box from call 1: [ymin, xmin, ymax, xmax] on a 0–1000 scale of the page (CONTRACTS §2.1). */
 export type Box = [number, number, number, number];
@@ -50,13 +50,14 @@ export function fitLongSide(width: number, height: number, maxLongSide?: number)
 
 // Steps on one page are cropped one after another (and twice each: full size and thumbnail),
 // so the last decoded page is kept instead of decoding it again for every crop.
-let lastDecoded: { jpegBase64: string; image: Promise<HTMLImageElement> } | null = null;
+let lastDecoded: { jpegBase64: string; image: Promise<ImageBitmap> } | null = null;
 
-function decodeJpeg(jpegBase64: string): Promise<HTMLImageElement> {
+// createImageBitmap decodes off the main thread and keeps working while the tab is in the background.
+// An <img> element's decode() waits for the tab to be visible, which stalled an upload when the user looked away.
+function decodeJpeg(jpegBase64: string): Promise<ImageBitmap> {
   if (lastDecoded?.jpegBase64 !== jpegBase64) {
-    const image = new Image();
-    image.src = jpegDataUrl(jpegBase64);
-    lastDecoded = { jpegBase64, image: image.decode().then(() => image) };
+    const bytes = Uint8Array.from(atob(jpegBase64), (char) => char.charCodeAt(0));
+    lastDecoded = { jpegBase64, image: createImageBitmap(new Blob([bytes], { type: "image/jpeg" })) };
   }
   return lastDecoded.image;
 }

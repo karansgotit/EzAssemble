@@ -31,3 +31,7 @@ The link is private until Ajit shares it from the page's Share menu. It holds se
 - Fonts are IBM Plex Sans and IBM Plex Mono (Google Fonts). The stacks fall back to system fonts, so the app still works offline.
 - Every control is at least 44 px tall. Text colours meet 4.5:1 contrast on their backgrounds.
 - No IKEA name, logo or colours in our own branding.
+
+## Direction
+
+[`direction.md`](direction.md) records the direction the page design follows (Smit, SMI-11). The live token values are in `app/globals.css`; `tokens.css` here is the first pass (SHR-03) and differs in its fonts.

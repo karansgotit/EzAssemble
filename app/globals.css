@@ -1,5 +1,5 @@
 /* Design tokens. Colours, spacing, radii and shadows come from docs/design/tokens.css (SHR-03); the 3D
-   scene reads the --scene-* ones. Type follows docs/design/brief/03-direction.md: "Read from the floor". */
+   scene reads the --scene-* ones. Type follows docs/design/direction.md: "Read from the floor". */
 :root {
   /* Page colours */
   --color-bg: #f4f5f2;

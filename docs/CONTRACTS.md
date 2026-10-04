@@ -476,8 +476,7 @@ export interface Api {
   analyzeStep(req: AnalyzeStepRequest, opts?: CallOptions): Promise<ApiResult<Step>>;
   saveManual(req: SaveManualRequest): Promise<{ ok: boolean; path?: string; error?: string }>;
 }
-export function getApi(): Api;   // returns the mock when fake data is on: NEXT_PUBLIC_MOCK_AI === "1", or the dev badge (fake-data/toggle.ts)
-export function mockedRoutes(): string[];   // development only: routes that answered 404 this session and were served by the mock
+export function getApi(): Api;   // returns the mock when NEXT_PUBLIC_MOCK_AI === "1" (client/mockMode.ts)
 
 // client/loadManual.ts  — the saved library under public/manuals/, validated with Zod; never throws
 export type Loaded<T> = { ok: true; data: T } | { ok: false; errors: string[] };
@@ -502,7 +501,6 @@ export async function processManual(input: { file: File; title: string; id: stri
 - `Api` methods never throw. A network error, timeout, cancel, rejected request or malformed response comes back as `ok: false` with readable `errors`.
 - The client retries once after 2 s on a network error or a `5xx`; it never retries `ok: false`, a `4xx` or a timeout.
 - Requests are validated against their request schemas before sending; `/api/parts` requests go through `preparePartsRequest` first.
-- In development only, with fake data off, a route that is not built yet (the server answers `404`) is answered by the mock for the rest of the session, and the upload page says which routes were mocked. A production build never substitutes mock answers.
 - After the last step, `processManual` marks a step `confidence: "low"` when `checkCumulativeCounts` or `checkConsistency` reports it, or when the layout could not be made sound.
 - `processManual` keeps going when a page can't be indexed (the page is stored as `{ pageType: "other", steps: [] }` and reported in a `stage` detail) and when a step fails (it becomes a `failed` SavedStep). It stops when the PDF can't be read, every page fails to index (the AI service is unreachable), no steps are found, the parts call fails, or it is cancelled.
 

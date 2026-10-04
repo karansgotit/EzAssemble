@@ -1,4 +1,4 @@
-import type { Confidence } from "./tempContracts";
+import type { Confidence } from "@/schema";
 import styles from "./StepPlayer.module.css";
 
 /** Shown when the AI was unsure about a step (FR-37). */

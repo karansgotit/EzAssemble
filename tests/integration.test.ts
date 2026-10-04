@@ -4,7 +4,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createMockApi } from "@/client/api.mock";
-import { fakeManual } from "@/fake-data/manual";
 import { partsForStep } from "@/player/stepView";
 import { buildSceneManual } from "@/scene/buildSceneManual";
 import { resolveScene } from "@/scene/resolveScene";
@@ -60,13 +59,6 @@ describe("saved manual → scene → player", () => {
     const { manual } = toSceneManual();
     expect(partsForStep(manual.parts, manual.steps[2]).map((item) => `${item.id}×${item.count}`)).toEqual(["dowel×2", "S1×1"]);
   });
-});
-
-describe("fake data stays valid against the real schema", () => {
-  it("fakeManual is a SceneManual", () => {
-    expect(SceneManual.safeParse(fakeManual).error?.issues ?? []).toEqual([]);
-  });
-
 });
 
 describe("mock API on a saved manual", () => {

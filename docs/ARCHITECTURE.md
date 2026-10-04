@@ -109,8 +109,6 @@ assembly-studio/
 │   ├── processSteps.ts                   pure helpers for the orchestrator
 │   └── processManual.ts                  the orchestrator: runs the whole upload pipeline
 │
-├── fake-data/                            ← Stand-in data + the fake-data on/off switch       (Smit)
-│
 ├── scene/                                ← 3D, pure logic + R3F components               (Ajit)
 │   ├── geometry.ts                       face normals, face rectangles, projections, bounds
 │   ├── layout.ts                         snapLayout(): rough AI layout → clean geometry
