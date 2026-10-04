@@ -2,6 +2,8 @@
 
 **Turn a confusing furniture assembly manual into clear, animated 3D steps.**
 
+**Try it live: [www.ezassemble.tech](https://www.ezassemble.tech)**
+
 Flat-pack furniture manuals often have no words. Each step is a line drawing with arrows and tiny zoomed-in details, and it is easy to use the wrong piece or put a panel in the wrong way round. EzAssemble takes the manual PDF and, for every step, shows:
 
 - the original diagram from the manual;
@@ -32,7 +34,7 @@ All AI calls go through Vertex AI using Gemini 3.8 Flash, from server-only code,
 - **Accuracy eval.** `npm run eval -- kallax` scores the AI against a hand-checked "gold" copy of the KALLAX manual (`fixtures/kallax.gold.json`).
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · three.js with React Three Fiber and drei · Zod 4 · pdf.js · Google Gen AI SDK on Vertex AI (Gemini) · Vitest · Vercel
+Next.js 16 (App Router) · React 19 · three.js with React Three Fiber and drei · Zod 4 · pdf.js · Google Gen AI SDK on Vertex AI (Gemini) · Vitest
 
 ## Running it locally
 
@@ -80,18 +82,6 @@ In development, the **Fake data** badge at the top centre of every page switches
 | `docs/` | PRD, decisions, data contracts, architecture, conventions, tasks | everyone |
 
 Start with [`docs/README.md`](docs/README.md) for the project docs in reading order.
-
-## Deploying to Vercel
-
-1. Import the GitHub repository into Vercel. The defaults are right (framework Next.js, root directory the repo root).
-2. Under **Settings → Environment Variables**, add:
-   - `GOOGLE_CLOUD_PROJECT`
-   - `GOOGLE_CLOUD_LOCATION` (`global`)
-   - `GOOGLE_SERVICE_ACCOUNT_JSON`: the key as one line, pasted as is, with no quotes around it
-3. Deploy, then open `/api/health`. `{"ok":true,...}` means the server can read the credentials; anything else names the setting to fix. It makes no AI call and shows no values.
-4. The AI routes need up to 60 seconds each (`maxDuration = 60`), so check your plan's function time limit.
-
-On the deployed site, the `/dev/*` pages and `/api/save-manual` answer "not found" on purpose, and the Fake data badge is hidden. To run the deployed site without AI calls, set `NEXT_PUBLIC_MOCK_AI=1` and redeploy.
 
 ## Demo with no internet (backup plan)
 
