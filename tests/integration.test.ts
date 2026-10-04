@@ -6,23 +6,16 @@ import { describe, expect, it } from "vitest";
 import { createMockApi } from "@/client/api.mock";
 import { fakeManual } from "@/fake-data/manual";
 import { partsForStep } from "@/player/stepView";
-import { snapLayout } from "@/scene/layout";
+import { buildSceneManual } from "@/scene/buildSceneManual";
 import { resolveScene } from "@/scene/resolveScene";
 import { buildTracks } from "@/scene/tracks";
 import { checkCumulativeCounts, checkPartsLayout, checkStep, LibraryIndex, placedPartsAfterStep, SceneManual, type Step } from "@/schema";
 import { saved, scene } from "./helpers/schemaFixtures";
 
-const BUILD_SIZE: [number, number, number] = [147, 39, 77];
-
-/** What AJI-03's buildSceneManual will do, reduced to the fields this test needs. */
+/** The saved KALLAX manual through Ajit's real buildSceneManual, checked against the scene schema. */
 function toSceneManual() {
-  const snapped = snapLayout(saved.layout, BUILD_SIZE);
-  const steps = saved.steps.flatMap((s) =>
-    s.status === "ok"
-      ? [{ stepNumber: s.step.stepNumber, kind: s.step.kind, instruction: s.step.instruction, actions: s.step.actions, confidence: s.step.confidence }]
-      : [],
-  );
-  return { snapped, manual: SceneManual.parse({ id: saved.id, title: saved.title, buildSizeCm: BUILD_SIZE, buildOrientation: saved.layout.buildOrientation, parts: snapped.parts, steps }) };
+  const { manual, layoutErrors } = buildSceneManual(saved, `/manuals/${saved.id}/`);
+  return { manual: SceneManual.parse(manual), layoutErrors };
 }
 
 describe("saved manual → scene → player", () => {
@@ -39,10 +32,10 @@ describe("saved manual → scene → player", () => {
     expect(checkCumulativeCounts(steps, saved.layout.parts)).toEqual([]);
   });
 
-  it("snapLayout turns the saved fractions back into the hand-made geometry", () => {
-    const { snapped } = toSceneManual();
-    expect(snapped.ok).toBe(true);
-    for (const part of snapped.parts) {
+  it("buildSceneManual turns the saved fractions back into the hand-made geometry", () => {
+    const { manual, layoutErrors } = toSceneManual();
+    expect(layoutErrors).toEqual([]);
+    for (const part of manual.parts) {
       const reference = scene.parts.find((p) => p.id === part.id);
       for (const key of ["homeCm", "sizeCm"] as const) {
         part[key]?.forEach((value, i) => expect(Math.abs(value - (reference?.[key]?.[i] ?? NaN))).toBeLessThan(0.5));
