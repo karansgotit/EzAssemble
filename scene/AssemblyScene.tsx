@@ -5,7 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { Vector3 } from "three";
 import { CameraRig } from "./CameraRig";
-import { COLORS, TRAP_SECONDS } from "./constants";
+import { SHADOW_OPACITY, TRAP_SECONDS, type SceneColors } from "./constants";
 import { Ghost } from "./Ghost";
 import {
   NO_ROTATION, add, boundsOf, cornersOf, rotate, sameRotation, uprightRotation, type Bounds, type Cuboid,
@@ -15,6 +15,7 @@ import { PartMesh } from "./PartMesh";
 import { ASSEMBLY_ID, assemblyBounds, resolveScene, type AssemblyPose } from "./resolveScene";
 import { buildTracks, sample, type Pose } from "./tracks";
 import type { Feature, SceneManual } from "./types";
+import { SceneColorsContext, usePageSceneColors } from "./useSceneColors";
 import { warnOnce } from "./warnOnce";
 
 // docs/CONTRACTS.md §7. The player loads this with next/dynamic and ssr: false.
@@ -39,9 +40,9 @@ function boundsInWorld(bounds: Bounds, pose: AssemblyPose): Bounds {
   return boundsOf(corners, bounds);
 }
 
-type WorldProps = AssemblySceneProps & { lookAt: RefObject<Vector3 | null> };
+type WorldProps = AssemblySceneProps & { lookAt: RefObject<Vector3 | null>; colors: SceneColors };
 
-function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, onProgress, onDone, lookAt }: WorldProps) {
+function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, onProgress, onDone, lookAt, colors }: WorldProps) {
   const { before, after, tracks, totalDuration } = useMemo(() => {
     const before = resolveScene(manual, stepIndex - 1);
     const after = resolveScene(manual, stepIndex);
@@ -121,10 +122,11 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
   const still: Pose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], spin: 0, opacity: 1 };
 
   return (
-    <>
-      <color attach="background" args={[COLORS.background]} />
-      <hemisphereLight args={["#ffffff", "#c6c2b8", 2.2]} />
-      <directionalLight position={[-80, 180, 100]} intensity={2.5} />
+    <SceneColorsContext.Provider value={colors}>
+      <color attach="background" args={[colors.background]} />
+      {/* Soft, even light: faces differ just enough to read as solid, and white stays white. */}
+      <hemisphereLight args={["#ffffff", "#d3d6cf", 2.1]} />
+      <directionalLight position={[-80, 180, 100]} intensity={1.1} />
 
       <group position={assembly.position} quaternion={assembly.quaternion}>
         {[...after.placed.values()].map((piece) =>
@@ -146,10 +148,10 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
       {resting && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[length / 2, -0.3, width / 2]}>
           <planeGeometry args={[length * 1.2, width * 1.4]} />
-          <meshStandardMaterial color={COLORS.floor} roughness={1} />
+          <meshStandardMaterial color={colors.floor} roughness={1} />
         </mesh>
       )}
-      <ContactShadows position={[length / 2, -0.6, width / 2]} scale={length * 2.2} opacity={0.22} blur={2.8} far={length * 1.2} resolution={256} />
+      <ContactShadows position={[length / 2, -0.6, width / 2]} scale={length * 2.2} opacity={SHADOW_OPACITY} blur={2.6} far={length * 1.2} resolution={256} />
 
       <CameraRig
         bounds={boundsInWorld(focus, shown)}
@@ -157,20 +159,22 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
         standing={standing}
         lookAt={lookAt}
       />
-    </>
+    </SceneColorsContext.Provider>
   );
 }
 
 export function AssemblyScene(props: AssemblySceneProps) {
   const lookAt = useRef<Vector3 | null>(null);
+  const colors = usePageSceneColors();
   return (
     <Canvas
       camera={{ position: [-110, 220, 290], fov: 30, near: 0.1, far: 2500 }}
       dpr={[1, 2]}
+      flat
       fallback={<p>3D needs WebGL. You can still follow the original diagrams.</p>}
     >
       {/* Re-mounting on step change or replay resets the clock; the scene is rebuilt from data. */}
-      <World key={`${props.manual.id}-${props.stepIndex}-${props.playKey}`} {...props} lookAt={lookAt} />
+      <World key={`${props.manual.id}-${props.stepIndex}-${props.playKey}`} {...props} lookAt={lookAt} colors={colors} />
     </Canvas>
   );
 }

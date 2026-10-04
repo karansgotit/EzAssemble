@@ -91,6 +91,20 @@ export function pointsOnFace(rect: FaceRect, count: number, from: number, to: nu
   return points;
 }
 
+// The 12 edges of a box centred on the origin, as pairs of end points.
+export function boxEdges(size: Vec3): Vec3[] {
+  const [x, y, z] = scale(size, 0.5);
+  const points: Vec3[] = [];
+  for (const a of [-1, 1]) {
+    for (const b of [-1, 1]) {
+      points.push([-x, a * y, b * z], [x, a * y, b * z]);
+      points.push([a * x, -y, b * z], [a * x, y, b * z]);
+      points.push([a * x, b * y, -z], [a * x, b * y, z]);
+    }
+  }
+  return points;
+}
+
 // A cylinder fitted inside a box: it runs along the box's longest side.
 export function cylinderIn(size: Vec3): { axis: number; radius: number; length: number } {
   const axis = size.indexOf(Math.max(...size));
