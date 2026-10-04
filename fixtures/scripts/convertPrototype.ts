@@ -15,6 +15,42 @@ const nn = (stepNumber: number) => String(stepNumber).padStart(2, "0");
 
 const prototype = JSON.parse(readFileSync(fromRepo("reference/prototype/src/fixtures/kallax.json"), "utf8")) as Prototype;
 
+// Corrections to the prototype, checked against the KALLAX drawings (KAR-04 review):
+// the second end panel E2 is not in step 1's drawing; step 12's last two dowels go into divider D4
+// (its end meets E2); step 14's inset swings E2 onto those dowels before the 6 screws.
+// Step 15's stand-up flip stays: a deliberate transition so the 3D ends upright (vertical branch).
+const CORRECTIONS: Record<number, Pick<PrototypeStep, "instruction" | "actions" | "confidence">> = {
+  1: {
+    instruction: "Lay the long panel on its edge on a soft surface. Screw the end panel onto its left end with 2 long screws, using the Allen key fitted into the handle tool.",
+    actions: [
+      { verb: "screw", part: "screw", count: 2, target: "E1", face: "left", for: "L1" },
+      { verb: "attach", part: "E1", count: 1, target: "L1", face: "left" },
+    ],
+    confidence: "high",
+  },
+  12: {
+    instruction: "Tap 8 dowels in: 2 into the front edge of each shelf and 2 into the end of the last divider piece.",
+    actions: [
+      { verb: "insert", part: "dowel", count: 2, target: "S1", face: "front", for: "L2" },
+      { verb: "insert", part: "dowel", count: 2, target: "S2", face: "front", for: "L2" },
+      { verb: "insert", part: "dowel", count: 2, target: "S3", face: "front", for: "L2" },
+      { verb: "insert", part: "dowel", count: 2, target: "D4", face: "right", for: "E2" },
+    ],
+    confidence: "high",
+  },
+  14: {
+    instruction: "Swing the second end panel onto the dowels, then fix the corners with the 6 remaining long screws, using the Allen key and handle tool.",
+    actions: [
+      { verb: "place", part: "E2", count: 1, target: "D4", face: "right" },
+      { verb: "screw", part: "screw", count: 2, target: "E1", face: "left", for: "L2" },
+      { verb: "screw", part: "screw", count: 2, target: "E2", face: "right", for: "L2" },
+      { verb: "screw", part: "screw", count: 2, target: "E2", face: "right", for: "L1" },
+    ],
+    confidence: "high",
+  },
+};
+const steps = prototype.steps.map(step => ({ ...step, ...CORRECTIONS[step.stepNumber] }));
+
 const ID = "kallax";
 const CREATED_AT = "2026-10-04T00:00:00Z";
 const PRODUCT_SIZE_CM: Vec3 = [77, 147, 39];   // upright [width, height, depth]
@@ -27,7 +63,7 @@ const scene = SceneManual.parse({
   buildSizeCm: BUILD_SIZE_CM,
   buildOrientation: "on-back",
   parts: prototype.parts,
-  steps: prototype.steps.map(({ orientationTrap, ...step }) => ({
+  steps: steps.map(({ orientationTrap, ...step }) => ({
     ...step,
     trap: orientationTrap && { ...orientationTrap, source: "manual", autoplay: true },
     crop: `/manuals/${ID}/crops/step-${nn(step.stepNumber)}.jpg`,
@@ -75,7 +111,7 @@ const gold = SavedManual.parse({
       ...(homeCm && { homeFrac: fraction(homeCm) }),
     })),
   },
-  steps: prototype.steps.map(({ orientationTrap, ...step }) => ({
+  steps: steps.map(({ orientationTrap, ...step }) => ({
     status: "ok",
     step: { ...step, ...(orientationTrap && { orientationTrap: { ...orientationTrap, source: "manual" } }) },
     crop: `crops/step-${nn(step.stepNumber)}.jpg`,

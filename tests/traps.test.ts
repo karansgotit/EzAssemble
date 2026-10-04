@@ -36,9 +36,13 @@ describe("deriveTraps on gold KALLAX", () => {
   });
 
   it("gives no trap to dowel-only steps, hole-less dividers, the flip or info steps", () => {
-    for (const stepNumber of [2, 4, 5, 7, 8, 10, 11, 12, 14, 15, 16, 17, 18, 19]) {
+    for (const stepNumber of [2, 4, 5, 7, 8, 10, 11, 12, 15, 16, 17, 18, 19]) {
       expect(trapOf(derived, stepNumber), `step ${stepNumber}`).toBeUndefined();
     }
+  });
+
+  it("warns about E2's hole side when it is swung on in step 14", () => {
+    expect(trapOf(derived, 14)).toMatchObject({ part: "E2", mustFace: "left", source: "geometry", autoplay: false });
   });
 
   it("does not change its input", () => {

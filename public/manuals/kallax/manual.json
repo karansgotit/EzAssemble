@@ -618,7 +618,7 @@
       "step": {
         "stepNumber": 1,
         "kind": "assembly",
-        "instruction": "Lay the long panel on its edge on a soft surface. Screw the end panel onto its left end with 2 long screws, using the Allen key fitted into the handle tool. Stand the other end panel at the far end.",
+        "instruction": "Lay the long panel on its edge on a soft surface. Screw the end panel onto its left end with 2 long screws, using the Allen key fitted into the handle tool.",
         "actions": [
           {
             "verb": "screw",
@@ -634,13 +634,6 @@
             "count": 1,
             "target": "L1",
             "face": "left"
-          },
-          {
-            "verb": "place",
-            "part": "E2",
-            "count": 1,
-            "target": "L1",
-            "face": "right"
           }
         ],
         "orientationTrap": {
@@ -650,7 +643,7 @@
           "hint": "Drilled holes face inward",
           "source": "manual"
         },
-        "confidence": "medium"
+        "confidence": "high"
       },
       "crop": "crops/step-01.jpg",
       "attempts": 1
@@ -895,7 +888,7 @@
       "step": {
         "stepNumber": 12,
         "kind": "assembly",
-        "instruction": "Tap 8 dowels into the exposed edges of the shelves and the end panel.",
+        "instruction": "Tap 8 dowels in: 2 into the front edge of each shelf and 2 into the end of the last divider piece.",
         "actions": [
           {
             "verb": "insert",
@@ -925,12 +918,12 @@
             "verb": "insert",
             "part": "dowel",
             "count": 2,
-            "target": "E2",
-            "face": "left",
-            "for": "L2"
+            "target": "D4",
+            "face": "right",
+            "for": "E2"
           }
         ],
-        "confidence": "low"
+        "confidence": "high"
       },
       "crop": "crops/step-12.jpg",
       "attempts": 1
@@ -967,8 +960,15 @@
       "step": {
         "stepNumber": 14,
         "kind": "assembly",
-        "instruction": "Fix the corners with the 6 remaining long screws, using the Allen key and handle tool.",
+        "instruction": "Swing the second end panel onto the dowels, then fix the corners with the 6 remaining long screws, using the Allen key and handle tool.",
         "actions": [
+          {
+            "verb": "place",
+            "part": "E2",
+            "count": 1,
+            "target": "D4",
+            "face": "right"
+          },
           {
             "verb": "screw",
             "part": "screw",
