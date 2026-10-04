@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { add, cornersOf, rotate } from "@/scene/geometry";
 import { resolveScene } from "@/scene/resolveScene";
-import { buildTracks, easeInOutCubic, sample } from "@/scene/tracks";
+import { buildTracks, easeInOutCubic, easeInOutSine, glideIn, sample } from "@/scene/tracks";
 import { loadKallaxScene } from "./helpers/kallaxScene";
 
 const manual = loadKallaxScene();
@@ -38,7 +38,10 @@ describe("sample", () => {
     const xAt = (t: number) => sample(tracks, t).get(track.id)?.position[0] ?? NaN;
     expect(xAt(0)).toBeCloseTo(track.from.position[0]);
     expect(xAt(totalDuration)).toBeCloseTo(track.to.position[0]);
-    expect(xAt(track.duration / 2)).toBeCloseTo((track.from.position[0] + track.to.position[0]) / 2);
+    // Half-way through its time a panel is between the two, and already most of the way there.
+    const halfWay = (track.from.position[0] + track.to.position[0]) / 2;
+    expect(xAt(track.duration / 2)).toBeLessThan(halfWay);
+    expect(xAt(track.duration / 2)).toBeGreaterThan(track.to.position[0]);
   });
 
   it("turns a screw three full turns on its way in", () => {
@@ -52,6 +55,36 @@ describe("sample", () => {
     const { tracks, totalDuration } = tracksOf(3);
     expect(sample(tracks, 0).get("S1#1")?.opacity).toBe(0.4);
     expect(sample(tracks, totalDuration).get("S1#1")?.opacity).toBe(1);
+  });
+
+  it("brings a piece up to solid smoothly as it sets off, with no jump", () => {
+    const { tracks } = tracksOf(5);
+    const [track] = tracks;
+    const opacityAt = (progress: number) => sample(tracks, track.start + track.duration * progress).get(track.id)?.opacity ?? NaN;
+    expect(opacityAt(0)).toBeCloseTo(0.4);
+    expect(opacityAt(0.125)).toBeCloseTo(0.7);
+    expect(opacityAt(0.25)).toBeCloseTo(1);
+    expect(opacityAt(0.6)).toBe(1);
+  });
+
+  it("never moves a piece backwards on its way in, and lands it without a jolt", () => {
+    for (const stepNumber of [1, 3, 5, 13]) {
+      const { tracks } = tracksOf(stepNumber);
+      for (const track of tracks.filter((t) => t.verb !== "insert")) {
+        const axis = track.from.position.findIndex((v, i) => v !== track.to.position[i]);
+        const travelled = (progress: number) => {
+          const p = sample(tracks, track.start + track.duration * progress).get(track.id)?.position[axis] ?? NaN;
+          return (p - track.from.position[axis]) / (track.to.position[axis] - track.from.position[axis]);
+        };
+        let last = 0;
+        for (let i = 1; i <= 50; i++) {
+          const now = travelled(i / 50);
+          expect(now).toBeGreaterThanOrEqual(last - 1e-9);
+          last = now;
+        }
+        expect(1 - travelled(0.98)).toBeLessThan(0.01); // creeping, not arriving at speed
+      }
+    }
   });
 
   it("knocks an inserted dowel once and leaves it exactly home", () => {
@@ -84,5 +117,14 @@ describe("sample", () => {
 
   it("eases from 0 to 1 through the half-way point", () => {
     expect([easeInOutCubic(0), easeInOutCubic(0.5), easeInOutCubic(1)]).toEqual([0, 0.5, 1]);
+    expect([easeInOutSine(0), easeInOutSine(1)]).toEqual([0, 1]);
+    expect(easeInOutSine(0.5)).toBeCloseTo(0.5);
+  });
+
+  it("glides in: a gentle start, most of the way by half time, a slow finish", () => {
+    expect([glideIn(0), glideIn(1)]).toEqual([0, 1]);
+    expect(glideIn(0.5)).toBeCloseTo(0.75);
+    expect(glideIn(0.02)).toBeLessThan(0.005); // barely moving at first
+    expect(1 - glideIn(0.9)).toBeLessThan(0.002); // nearly still at the end
   });
 });

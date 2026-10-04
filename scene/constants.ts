@@ -29,11 +29,15 @@ export const END_HOLD = 0.4; // stillness after the last piece lands
 
 export const SCREW_TURNS = 3;
 export const WAITING_OPACITY = 0.4; // a piece whose turn has not come yet
+export const FADE_IN_FRAC = 0.25; // share of its own motion a piece takes to become solid
 export const HARDWARE_APPROACH_CM = 6; // how far out hardware starts, at HARDWARE_SCALE 2.5
 export const PANEL_APPROACH_CM = 10; // plus 35% of the panel's own depth
 export const PANEL_APPROACH_FRAC = 0.35;
 
 // The wrong-vs-right ghost, shown before a step's own motion.
+export const TRAP_APPEAR_SECONDS = 0.25; // the ghost fades in rather than popping up
+export const TRAP_SHAKE_DEGREES = 2.5; // a small "no" shake while it is the wrong way round
+export const TRAP_SHAKES = 2;
 export const TRAP_WRONG_SECONDS = 1.2; // held in the wrong pose
 export const TRAP_TURN_SECONDS = 1; // turning to the right pose
 export const TRAP_FADE_SECONDS = 0.4; // fading away
@@ -43,8 +47,6 @@ export const GHOST_OPACITY = 0.45;
 // Line weights, in screen pixels. The part being added is drawn heavier, like the bold
 // outline a manual gives the piece in your hand.
 export const EDGE_WIDTH = { current: 2.4, previous: 1.1, hardware: 1.3, ghost: 2.2 };
-export const GUIDE_WIDTH = 2.4;
-export const GUIDE_DASH_CM: [number, number] = [2.2, 1.4]; // dash, gap
 export const GHOST_DASH_CM: [number, number] = [2.4, 1.6]; // the wrong pose is drawn dashed
 export const SHADOW_OPACITY = 0.3;
 

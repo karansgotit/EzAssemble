@@ -7,7 +7,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { fitDistance, type Bounds } from "./geometry";
 import type { Vec3 } from "./types";
 
-const GLIDE_SECONDS = 0.6;
+const GLIDE_SECONDS = 0.75;
 const MARGIN = 1.18; // air around the framed parts
 const MIN_DISTANCE_CM = 45;
 // Front-left-above, like the manual's drawings; lower and more head-on once the unit stands.
@@ -64,7 +64,9 @@ export function CameraRig({ bounds, frameKey, standing, lookAt }: CameraRigProps
     const g = glide.current;
     if (!g) return;
     g.elapsed += delta;
-    const eased = 1 - Math.pow(1 - Math.min(1, g.elapsed / GLIDE_SECONDS), 3);
+    // Ease in as well as out, so the view does not lurch as a step opens.
+    const through = Math.min(1, g.elapsed / GLIDE_SECONDS);
+    const eased = through < 0.5 ? 4 * through ** 3 : 1 - Math.pow(-2 * through + 2, 3) / 2;
     camera.position.lerpVectors(g.fromPosition, g.toPosition, eased);
     controls.current.target.lerpVectors(g.fromTarget, g.toTarget, eased);
     controls.current.update();
