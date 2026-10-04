@@ -10,7 +10,6 @@ import { Ghost } from "./Ghost";
 import {
   NO_ROTATION, add, boundsOf, cornersOf, rotate, sameRotation, uprightRotation, type Bounds, type Cuboid,
 } from "./geometry";
-import { MotionGuide } from "./MotionGuide";
 import { PartMesh } from "./PartMesh";
 import { ASSEMBLY_ID, assemblyBounds, resolveScene, type AssemblyPose } from "./resolveScene";
 import { buildTracks, sample, type Pose } from "./tracks";
@@ -149,7 +148,6 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
             />
           ),
         )}
-        {!inTrap && tracks.map((track) => <MotionGuide key={`${track.id}-${track.start}`} track={track} time={motionTime} />)}
         {inTrap && step?.trap && trapPiece && <Ghost piece={trapPiece} trap={step.trap} time={time} />}
       </group>
 

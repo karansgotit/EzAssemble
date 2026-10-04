@@ -168,6 +168,11 @@ export function turnOnto(from: Vec3, to: Vec3): Quat {
   return toQuat(new Quaternion().setFromUnitVectors(new Vector3(...from), new Vector3(...to)));
 }
 
+// The rotation that does `first`, then `second`.
+export function compose(second: Quat, first: Quat): Quat {
+  return toQuat(fromQuat(second).multiply(fromQuat(first)));
+}
+
 export function aboutAxis(axis: Vec3, radians: number): Quat {
   return toQuat(new Quaternion().setFromAxisAngle(new Vector3(...axis), radians));
 }

@@ -1,6 +1,6 @@
 import {
   ACTION_GAP, DURATIONS, END_HOLD, HARDWARE_APPROACH_CM, HARDWARE_SCALE, PANEL_APPROACH_CM,
-  PANEL_APPROACH_FRAC, SCREW_TURNS, STAGGER, WAITING_OPACITY, hardwareScaleFor,
+  FADE_IN_FRAC, PANEL_APPROACH_FRAC, SCREW_TURNS, STAGGER, WAITING_OPACITY, hardwareScaleFor,
 } from "./constants";
 import { add, mix, normalAxis, scale, settleOnFloor, slerp, type Bounds, type Quat } from "./geometry";
 import { ASSEMBLY_ID, assemblyBounds, type SceneState } from "./resolveScene";
@@ -30,6 +30,28 @@ const TAP_DEPTH = 0.05;
 export function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
+
+// A piece being put in place: it sets off gently, covers most of the way early, and spends
+// the second half slowing into its seat, the way a hand guides a panel onto its dowels.
+export function glideIn(t: number): number {
+  const smooth = t * t * (3 - 2 * t);
+  return 1 - (1 - smooth) * (1 - smooth);
+}
+
+// A screw goes in at a steady rate, with only a soft start and stop.
+export function easeInOutSine(t: number): number {
+  return (1 - Math.cos(Math.PI * t)) / 2;
+}
+
+// How each kind of motion is paced.
+const PACE: Record<Verb, (t: number) => number> = {
+  place: glideIn,
+  attach: glideIn,
+  insert: glideIn,
+  screw: easeInOutSine,
+  lock: easeInOutCubic,
+  flip: easeInOutCubic,
+};
 
 const clamp01 = (t: number): number => Math.max(0, Math.min(1, t));
 
@@ -84,7 +106,11 @@ export function sample(tracks: Track[], seconds: number): Map<string, Pose> {
     if (seconds < track.start && poses.has(track.id)) continue;
     const progress = clamp01((seconds - track.start) / track.duration);
     const tapping = track.verb === "insert" && progress > TAP_START && progress < 1;
-    const eased = easeInOutCubic(track.verb === "insert" ? clamp01(progress / TAP_START) : progress);
+    const pace = PACE[track.verb] ?? easeInOutCubic;
+    const eased = pace(track.verb === "insert" ? clamp01(progress / TAP_START) : progress);
+    // A piece that travels becomes solid as it sets off; one that turns in place is solid already.
+    const travels = !track.pivot && track.verb !== "lock";
+    const waiting = seconds < track.start ? WAITING_OPACITY : WAITING_OPACITY + (1 - WAITING_OPACITY) * clamp01(progress / FADE_IN_FRAC);
 
     let position = mix(track.from.position, track.to.position, eased);
     const quaternion = slerp(track.from.quaternion, track.to.quaternion, eased);
@@ -100,7 +126,7 @@ export function sample(tracks: Track[], seconds: number): Map<string, Pose> {
       position,
       quaternion,
       spin: track.from.spin + (track.to.spin - track.from.spin) * eased,
-      opacity: seconds < track.start ? WAITING_OPACITY : 1,
+      opacity: travels ? waiting : 1,
     });
   }
   return poses;

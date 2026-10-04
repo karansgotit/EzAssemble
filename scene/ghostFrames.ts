@@ -1,6 +1,9 @@
-import { GHOST_OPACITY, TRAP_FADE_SECONDS, TRAP_SECONDS, TRAP_TURN_SECONDS, TRAP_WRONG_SECONDS } from "./constants";
 import {
-  FACE_NORMALS, NO_ROTATION, aboutAxis, faceRect, normalAxis, pointsOnFace, slerp, type Quat,
+  GHOST_OPACITY, TRAP_APPEAR_SECONDS, TRAP_FADE_SECONDS, TRAP_SECONDS, TRAP_SHAKES, TRAP_SHAKE_DEGREES,
+  TRAP_TURN_SECONDS, TRAP_WRONG_SECONDS,
+} from "./constants";
+import {
+  FACE_NORMALS, NO_ROTATION, aboutAxis, compose, faceRect, normalAxis, pointsOnFace, slerp, type Quat,
 } from "./geometry";
 import { easeInOutCubic } from "./tracks";
 import type { Face, Feature, SceneTrap, Vec3, WrongOrientation } from "./types";
@@ -36,17 +39,28 @@ export interface GhostFrame {
   label: string;
 }
 
-// The ghost at `seconds` into the trap: wrong and red, then turning right and green, then
-// fading. Undefined once it is over and the step's own motion takes the stage.
+// The small side-to-side shake of the wrong pose, in radians: nothing at the start and end of
+// the hold, so it eases in and out of stillness.
+export function ghostShake(seconds: number): number {
+  if (seconds <= 0 || seconds >= TRAP_WRONG_SECONDS) return 0;
+  const through = seconds / TRAP_WRONG_SECONDS;
+  const swell = Math.sin(Math.PI * through) ** 2;
+  return ((TRAP_SHAKE_DEGREES * Math.PI) / 180) * swell * Math.sin(2 * Math.PI * TRAP_SHAKES * through);
+}
+
+// The ghost at `seconds` into the trap: it fades in wrong and red with a small shake, turns
+// right and green, then fades. Undefined once it is over and the step's own motion starts.
 export function ghostAt(trap: SceneTrap, seconds: number): GhostFrame | undefined {
   if (seconds >= TRAP_SECONDS) return undefined;
   const turning = Math.max(0, Math.min(1, (seconds - TRAP_WRONG_SECONDS) / TRAP_TURN_SECONDS));
   const rightness = easeInOutCubic(turning);
   const fading = Math.max(0, (seconds - TRAP_WRONG_SECONDS - TRAP_TURN_SECONDS) / TRAP_FADE_SECONDS);
+  const appearing = Math.min(1, Math.max(0, seconds) / TRAP_APPEAR_SECONDS);
+  const wrong = compose(aboutAxis([0, 1, 0], ghostShake(seconds)), wrongRotation(trap.wrong, trap.mustFace));
   return {
-    quaternion: slerp(wrongRotation(trap.wrong, trap.mustFace), NO_ROTATION, rightness),
+    quaternion: slerp(wrong, NO_ROTATION, rightness),
     rightness,
-    opacity: GHOST_OPACITY * (1 - fading),
+    opacity: GHOST_OPACITY * appearing * (1 - fading),
     label: ghostLabel(trap, seconds >= TRAP_WRONG_SECONDS),
   };
 }

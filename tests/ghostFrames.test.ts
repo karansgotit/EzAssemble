@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TRAP_SECONDS } from "@/scene/constants";
 import { FACE_NORMALS, NO_ROTATION, rotate, sameRotation } from "@/scene/geometry";
-import { featureMarks, ghostAt, ghostLabel, wrongRotation } from "@/scene/ghostFrames";
+import { featureMarks, ghostAt, ghostLabel, ghostShake, wrongRotation } from "@/scene/ghostFrames";
 import type { Face, SceneTrap, Vec3 } from "@/scene/types";
 
 const FACES = Object.keys(FACE_NORMALS) as Face[];
@@ -33,13 +33,33 @@ describe("wrongRotation", () => {
 
 describe("ghostAt", () => {
   it("holds the wrong pose, red, for the first 1.2 s", () => {
-    for (const seconds of [0, 0.6, 1.19]) {
+    const wrong = wrongRotation("flipped-horizontal", "right");
+    for (const seconds of [0, 0.3, 0.6, 0.9, 1.19]) {
       const frame = ghostAt(trap(), seconds);
       expect(frame?.rightness).toBe(0);
-      expect(frame?.opacity).toBeCloseTo(0.45);
-      expect(frame && sameRotation(frame.quaternion, wrongRotation("flipped-horizontal", "right"))).toBe(true);
       expect(frame?.label).toBe("✗ Possible mistake");
+      // Never more than the small shake away from the wrong pose: the holes stay on the wrong side.
+      const holes = rotate([1, 0, 0], frame?.quaternion ?? [0, 0, 0, 1]);
+      expect(dot(holes, rotate([1, 0, 0], wrong))).toBeGreaterThan(Math.cos((3 * Math.PI) / 180));
     }
+    expect(sameRotation(ghostAt(trap(), 0)?.quaternion ?? [0, 0, 0, 1], wrong)).toBe(true);
+  });
+
+  it("fades in over the first quarter second instead of popping up", () => {
+    expect(ghostAt(trap(), 0)?.opacity).toBe(0);
+    expect(ghostAt(trap(), 0.125)?.opacity).toBeCloseTo(0.225);
+    expect(ghostAt(trap(), 0.25)?.opacity).toBeCloseTo(0.45);
+    expect(ghostAt(trap(), 0.6)?.opacity).toBeCloseTo(0.45);
+  });
+
+  it("shakes its head a little while wrong, and is still when it starts to turn", () => {
+    expect(ghostShake(0)).toBe(0);
+    expect(ghostShake(1.2)).toBe(0);
+    expect(ghostShake(2)).toBe(0);
+    const peak = Math.max(...Array.from({ length: 121 }, (_, i) => Math.abs(ghostShake(i / 100))));
+    expect(peak).toBeGreaterThan((1.5 * Math.PI) / 180);
+    expect(peak).toBeLessThanOrEqual((2.5 * Math.PI) / 180);
+    expect(ghostShake(0.4) * ghostShake(0.8)).toBeLessThan(0); // one way, then the other
   });
 
   it("turns to the right pose and goes green between 1.2 s and 2.2 s", () => {
