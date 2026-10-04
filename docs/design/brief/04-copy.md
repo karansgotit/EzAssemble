@@ -23,7 +23,7 @@ A plainer alternative, if the line above feels like a slogan: "Assembly manuals,
 | Element | Copy |
 |---|---|
 | Drop zone, heading | Drop your assembly manual here |
-| Drop zone, second line | PDF of an IKEA assembly manual · or choose a file |
+| Drop zone, second line | PDF of a furniture assembly manual · or choose a file |
 | While a file is dragged over | Drop it to start |
 | Saved manuals, heading | Already read |
 | A card | KALLAX 2×4 · 19 steps |
@@ -111,7 +111,7 @@ Each has a heading, one sentence of reason, and one action.
 | That file is empty | | Choose another file |
 | This PDF can't be read | The file may be damaged. | Choose another file |
 | This PDF has a password | Upload a copy without a password. | Choose another file |
-| No steps found | We couldn't find assembly steps in this PDF. Is it an IKEA assembly manual? | Choose another file |
+| No steps found | We couldn't find assembly steps in this PDF. Is it a furniture assembly manual? | Choose another file |
 | The AI didn't answer | This manual couldn't be read just now. | Try again |
 | The parts couldn't be identified | The parts page of this manual couldn't be read. | Try again · Choose another file |
 | Manual not found | There is no manual called "billy". | All manuals |

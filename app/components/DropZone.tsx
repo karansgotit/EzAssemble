@@ -51,7 +51,7 @@ export function DropZone({ onFile, problem = null }: Props) {
           <path d="M31 3v14h14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
         </svg>
         <strong>{dragging ? "Drop it to start" : "Drop your assembly manual here"}</strong>
-        <span>PDF of an IKEA assembly manual · or choose a file</span>
+        <span>PDF of a furniture assembly manual · or choose a file</span>
       </label>
       {message && (
         <p className={styles.problem} role="alert">
