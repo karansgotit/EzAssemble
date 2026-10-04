@@ -39,3 +39,4 @@ eval/out/
 .DS_Store
 coverage/
 .vite/
+.claude
