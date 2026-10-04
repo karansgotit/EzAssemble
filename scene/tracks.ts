@@ -45,8 +45,8 @@ export function buildTracks(
   const actions = after.stepActions.length > before.stepActions.length ? after.stepActions[after.stepActions.length - 1] : [];
   let cursor = 0;
 
-  for (const { action, ids, normal } of actions) {
-    const duration = DURATIONS[action.verb];
+  for (const { ids, normal, motion } of actions) {
+    const duration = DURATIONS[motion];
     ids.forEach((id, i) => {
       const start = cursor + i * STAGGER;
       if (id === ASSEMBLY_ID) {
@@ -58,17 +58,17 @@ export function buildTracks(
       if (!piece) return;
       const to: Pose = { position: piece.position, quaternion: piece.quaternion, spin: piece.spin, opacity: 1 };
       let from: Pose;
-      if (action.verb === "lock") {
+      if (motion === "lock") {
         from = { ...to, spin: before.placed.get(id)?.spin ?? to.spin - Math.PI / 2 };
-      } else if (action.verb === "insert" || action.verb === "screw") {
+      } else if (motion === "insert" || motion === "screw") {
         const distance = (HARDWARE_APPROACH_CM * hardwareScale) / HARDWARE_SCALE;
-        const turns = action.verb === "screw" ? SCREW_TURNS * 2 * Math.PI : 0;
+        const turns = motion === "screw" ? SCREW_TURNS * 2 * Math.PI : 0;
         from = { ...to, position: add(to.position, scale(normal, distance)), spin: to.spin - turns };
       } else {
         const distance = piece.size[normalAxis(normal)] * PANEL_APPROACH_FRAC + PANEL_APPROACH_CM;
         from = { ...to, position: add(to.position, scale(normal, distance)) };
       }
-      tracks.push({ id, verb: action.verb, from, to, start, duration });
+      tracks.push({ id, verb: motion, from, to, start, duration });
     });
     cursor += duration + Math.max(0, ids.length - 1) * STAGGER + ACTION_GAP;
   }

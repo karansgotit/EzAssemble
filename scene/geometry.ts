@@ -91,6 +91,13 @@ export function pointsOnFace(rect: FaceRect, count: number, from: number, to: nu
   return points;
 }
 
+// A cylinder fitted inside a box: it runs along the box's longest side.
+export function cylinderIn(size: Vec3): { axis: number; radius: number; length: number } {
+  const axis = size.indexOf(Math.max(...size));
+  const across = size.filter((_, i) => i !== axis);
+  return { axis, radius: Math.min(...across) / 2, length: size[axis] };
+}
+
 export function boundsOf(boxes: Cuboid[], fallback: Bounds): Bounds {
   if (boxes.length === 0) return fallback;
   const all = boxes.map(boundsOfCuboid);
