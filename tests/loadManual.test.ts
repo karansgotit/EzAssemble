@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { loadLibrary, loadManual, manualBaseUrl } from "@/client/loadManual";
 import { sceneManualFor } from "@/client/sceneManualFor";
 
-const publicDir = new URL("../public", import.meta.url).pathname;
+// fileURLToPath, not .pathname: that one breaks on Windows drives and on folders with spaces.
+const publicDir = fileURLToPath(new URL("../public", import.meta.url));
 
 /** Serves the real files under public/, like the app does; anything else is a 404. */
 async function staticFiles(url: string): Promise<Response> {
