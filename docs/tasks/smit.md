@@ -138,6 +138,11 @@
 - [ ] As soon as step 1 is ready, the user can open the player (`mode="processing"`) while the rest continues.
 - [ ] Cancel button (aborts the remaining requests).
 
+**Changed while building (Smit's call, 2026-10-04; needs team agreement before it is final)**
+- The user only chooses a PDF. Title and id come from the file name; there are no title, id or size fields. This departs from FR-10.
+- The page opens the player by itself when the whole manual is ready (no "open now" while it is still processing). The waiting screen is a loading bar, a stage line and the step list.
+- **Open question: where the product size comes from.** The pipeline still needs it (CONTRACTS §2.2, §3). For now `client/uploadForm.ts` uses a fixed KALLAX 2×4 size (`INTERIM_PRODUCT_SIZE_CM`), which is wrong in proportion for any other furniture. Proposal: `/api/parts` returns the estimated size (a `CONTRACT:` change in `schema/` and the KAR-07 prompt).
+
 **Acceptance criteria (H8 checkpoint, real AI)**
 - [ ] Upload KALLAX → the first step is playable in < 30 s; all steps finish.
 

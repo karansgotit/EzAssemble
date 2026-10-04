@@ -60,7 +60,9 @@ export async function rasterize(file: File, opts: { maxLongSide?: number } = {})
       const viewport = page.getViewport({ scale: maxLongSide / Math.max(base.width, base.height) });
       canvas.width = Math.round(viewport.width);
       canvas.height = Math.round(viewport.height);
-      await page.render({ canvas, viewport }).promise;
+      // "print" makes pdf.js draw without waiting for screen refreshes, so pages keep rendering
+      // when the tab is in the background. On screen-refresh pacing the upload stalls there.
+      await page.render({ canvas, viewport, intent: "print" }).promise;
       pages.push({ pageNumber, jpegBase64: canvasToJpegBase64(canvas), width: canvas.width, height: canvas.height });
       page.cleanup();
     }

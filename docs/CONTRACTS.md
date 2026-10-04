@@ -498,7 +498,7 @@ export async function processManual(input: { file: File; title: string; id: stri
 - `Api` methods never throw. A network error, timeout, cancel, rejected request or malformed response comes back as `ok: false` with readable `errors`.
 - The client retries once after 2 s on a network error or a `5xx`; it never retries `ok: false`, a `4xx` or a timeout.
 - Requests are validated against their request schemas before sending; `/api/parts` requests go through `preparePartsRequest` first.
-- `processManual` keeps going when a page can't be indexed (the page is stored as `{ pageType: "other", steps: [] }` and reported in a `stage` detail) and when a step fails (it becomes a `failed` SavedStep). It stops when the PDF can't be read, no steps are found, the parts call fails, or it is cancelled.
+- `processManual` keeps going when a page can't be indexed (the page is stored as `{ pageType: "other", steps: [] }` and reported in a `stage` detail) and when a step fails (it becomes a `failed` SavedStep). It stops when the PDF can't be read, every page fails to index (the AI service is unreachable), no steps are found, the parts call fails, or it is cancelled.
 
 ---
 

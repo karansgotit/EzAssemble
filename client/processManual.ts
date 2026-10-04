@@ -80,6 +80,9 @@ export async function processManual(
   });
   checkCancelled();
 
+  // Every page failing is not "a PDF with no steps": the AI never answered (routes down, no credentials, offline).
+  if (skippedPages.length === pageImages.length) stop("The AI service that reads manuals didn't answer, so this manual couldn't be analysed. Try again in a moment.");
+
   // A3. One entry per step number; sub-assembly runs collapse into one card
   const refs = pickSteps(pages);
   if (refs.length === 0) stop("No assembly steps were found in this PDF. Is it an IKEA assembly manual?");
@@ -96,6 +99,7 @@ export async function processManual(
   const thumbs: string[] = [];
   for (const planned of plan) {
     if (planned.kind !== "analyse") continue;
+    checkCancelled();
     const page = pageImages[planned.ref.pageNumber - 1];
     crops.set(planned.ref.stepNumber, await crop(page, planned.ref.box));
     thumbs.push(await crop(page, planned.ref.box, { maxLongSide: THUMB_LONG_SIDE }));

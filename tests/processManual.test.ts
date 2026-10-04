@@ -106,6 +106,12 @@ describe("processManual when things go wrong", () => {
     expect(events.at(-1)).toMatchObject({ type: "error" });
   });
 
+  it("says the AI didn't answer when every page fails, instead of blaming the PDF", async () => {
+    const mock = createMockApi(gold, instant);
+    const api: Api = { ...mock, indexPage: async () => ({ ok: false, errors: ["The server rejected the request (404)"], attempts: 0, usage: [] }) };
+    await expect(run(api)).rejects.toThrow("The AI service that reads manuals didn't answer");
+  });
+
   it("stops when no steps are found", async () => {
     const mock = createMockApi(gold, instant);
     const api: Api = { ...mock, indexPage: async () => ({ ok: true, data: { pageType: "other", steps: [] }, attempts: 1, usage: [] }) };
