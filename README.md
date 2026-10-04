@@ -2,40 +2,39 @@
 
 **Turn a confusing IKEA assembly manual into clear, animated 3D steps.**
 
-Upload an IKEA manual PDF. For each step, EzAssemble shows the original diagram, a plain-English instruction, and a short interactive 3D animation of which piece moves where. Where there's evidence, it also shows a "wrong vs right" ghost of the likely mistake. Gemini (via Vertex AI) reads the diagrams and fills in strict forms; our own code validates them and generates all the geometry and animation.
+IKEA manuals have no words. Each step is a line drawing with arrows and tiny zoomed-in details, and it is easy to use the wrong piece or put a panel in the wrong way round. EzAssemble takes the manual PDF and, for every step, shows:
 
-Built at **StormHacks 2026** by Ajitsingh Chauhan, Smit Sanghvi and Karan Passi.
+- the original diagram from the manual;
+- one plain-English sentence saying what to do;
+- a 3D animation of which piece moves where, which you can rotate and replay;
+- where the manual gives evidence for it, the likely mistake: a red ghost in the wrong orientation that turns into the right one.
 
-## Status
+Built in 24 hours at **StormHacks 2026** by Ajitsingh Chauhan, Smit Sanghvi and Karan Passi.
 
-🚧 **In progress.** Working today: the manual library, the step player with the 3D scene on KALLAX, PDF rasterizing and cropping, the API client with a mock, and the upload page with live progress (so far run only against the mock). Any saved manual opens from the library, and in development an uploaded manual can be saved into it. Not built yet: the AI routes and re-analyze. Tasks are in [`docs/tasks/`](docs/tasks/README.md).
+## How it works
 
-## Start here
+Gemini only fills in strict forms. It never writes code or 3D coordinates. Our own code checks every answer and builds all the geometry and animation.
 
-1. Read [`docs/README.md`](docs/README.md) (reading order for all project docs).
-2. Find your task file: [`karan.md`](docs/tasks/karan.md) · [`ajit.md`](docs/tasks/ajit.md) · [`smit.md`](docs/tasks/smit.md) · [`shared.md`](docs/tasks/shared.md).
-3. Using Claude Code? It loads [`CLAUDE.md`](CLAUDE.md) automatically.
+1. **Read the PDF in the browser.** Each page is turned into an image with pdf.js.
+2. **Index the pages.** Gemini says what is on each page: steps, the parts list, or something else, and where each step's drawing sits so we can cut it out.
+3. **Read the parts.** Gemini lists the panels and hardware, where each panel sits in the finished piece, and which way up the furniture is built.
+4. **Read each step.** Gemini fills one form per step: the instruction, which part goes onto which, how many, and on which face. Steps go in order, each told what is already built, and appear on screen as they finish.
+5. **Check, then build.** Every answer is validated against a Zod schema and a set of rules (e.g. a part can't be attached to something that isn't placed yet). A bad answer is retried, at most twice. Then the scene code turns the forms into a 3D layout and animation tracks.
 
-## Repository layout
+All AI calls go through Vertex AI using Gemini 3.8 Flash, from server-only code, so the credentials never reach the browser. Each step costs a fraction of a cent.
 
-| Path | What | Owner |
-|---|---|---|
-| `app/` | Next.js pages + API routes | Smit (pages, save-manual) · Karan (AI routes) |
-| `schema/` | Zod contracts + shared semantic checks | Karan |
-| `pipeline/` | Vertex AI client, `callStructured`, prompts, eval | Karan |
-| `client/` | Browser-side PDF rasterize, crop, API client, upload orchestrator | Smit |
-| `scene/` | 3D: layout snapping, scene resolution, animation, wrong-vs-right | Ajit |
-| `player/` | Step player UI | Smit |
-| `fixtures/` | Gold (hand-checked) manuals for tests and eval | Karan |
-| `public/manuals/` | Saved, pre-processed manuals for the demo | Smit |
-| `fake-data/` | Stand-in data and the fake-data on/off switch for development | Smit |
-| `scripts/` | One-off checks (`check-vertex.ts`) | Smit |
-| `tests/` | Vitest tests | each owner |
-| `assets/` | Source images (KALLAX step crops) | Karan |
-| `reference/prototype/` | Visual prototype, **reference only, never import** | — |
-| `docs/` | PRD, contracts, architecture, decisions, conventions, tasks | team |
+## What works
 
-## Getting started
+- **Library.** A saved, pre-processed KALLAX 2×4 shelf (19 steps) opens instantly, with no AI calls.
+- **Upload.** Drop in any IKEA manual PDF and watch the steps appear. You can cancel part way. In development, a finished manual can be saved into the library.
+- **Step player.** Diagram, instruction and 3D scene side by side; arrow keys move between steps; a "show the mistake" replay where there is one; a warning on steps the AI was unsure about; and a single "assembled separately" card for sub-assemblies.
+- **Light and dark themes.**
+- **Accuracy eval.** `npm run eval -- kallax` scores the AI against a hand-checked "gold" copy of the KALLAX manual (`fixtures/kallax.gold.json`).
+## Tech stack
+
+Next.js 16 (App Router) · React 19 · three.js with React Three Fiber and drei · Zod 4 · pdf.js · Google Gen AI SDK on Vertex AI (Gemini) · Vitest · Vercel
+
+## Running it locally
 
 ```bash
 npm install
@@ -43,50 +42,69 @@ npm install
 ```bash
 cp .env.example .env.local
 ```
-Fill in the Google Cloud values in `.env.local` (see `docs/CONVENTIONS.md` §6), or set `NEXT_PUBLIC_MOCK_AI=1` to work without AI.
+
+Fill in the three Google Cloud values in `.env.local`. To run without any AI calls instead, set `NEXT_PUBLIC_MOCK_AI=1`; uploads then answer with the saved KALLAX data.
 
 ```bash
 npm run dev
 ```
-```bash
-npm run typecheck && npm test && npm run build
-```
 
-To confirm your Google Cloud credentials work (one small real AI call):
+Open http://localhost:3000.
 
-```bash
-npm run check:vertex
-```
+Other commands:
 
-In development, the **Fake data** badge at the top centre switches between the mock and the real API without a restart.
+| Command | What it does |
+|---|---|
+| `npm run typecheck && npm test && npm run build` | Type check, unit tests, production build |
+| `npm run check:vertex` | One small real AI call to confirm your Google Cloud credentials work |
+| `npm run eval -- kallax` | Score the AI against the gold KALLAX manual (real, billed AI calls) |
 
-IKEA manual PDFs go in `manuals-src/` (git-ignored; shared in team chat).
+In development, the **Fake data** badge at the top centre of every page switches between the mock and the real API without a restart. The team's tool pages are at `/dev/pdf`, `/dev/player` and `/dev/scene`.
+
+## Repository layout
+
+| Path | What | Owner |
+|---|---|---|
+| `app/` | Next.js pages (library, upload, player) and API routes | Smit (pages) · Karan (AI routes) |
+| `app/api/` | `index-page`, `parts`, `analyze-step` (AI); `health`, `save-manual` (dev only) | Karan · Smit |
+| `schema/` | Zod data contracts and the shared rule checks | Karan |
+| `pipeline/` | Vertex AI client, `callStructured`, prompts, eval | Karan |
+| `client/` | In-browser PDF reading and cropping, API client and mock, upload orchestrator | Smit |
+| `scene/` | 3D engine: layout, scene building, animation, wrong-vs-right ghosts | Ajit |
+| `player/` | Step player UI | Smit |
+| `fixtures/` | Hand-checked gold KALLAX manual for tests and eval | Karan |
+| `public/manuals/` | Saved, pre-processed manuals shown in the library | Smit |
+| `fake-data/` | Stand-in data and the fake-data switch for development | Smit |
+| `tests/` | Vitest tests | everyone |
+| `reference/prototype/` | Early visual prototype, reference only | — |
+| `docs/` | PRD, decisions, data contracts, architecture, conventions, tasks | everyone |
+
+Start with [`docs/README.md`](docs/README.md) for the project docs in reading order.
 
 ## Deploying to Vercel
 
-1. In Vercel, import the GitHub repository. The defaults are right: framework Next.js, root directory the repo root.
-2. Under **Settings → Environment Variables**, add the same three values as in `.env.local`:
+1. Import the GitHub repository into Vercel. The defaults are right (framework Next.js, root directory the repo root).
+2. Under **Settings → Environment Variables**, add:
    - `GOOGLE_CLOUD_PROJECT`
    - `GOOGLE_CLOUD_LOCATION` (`global`)
    - `GOOGLE_SERVICE_ACCOUNT_JSON`: the key as one line, pasted as is, with no quotes around it
-3. Deploy, then open `/api/health` on the deployed site. `{"ok":true,...}` means the server can read the credentials; anything else names the setting to fix. It makes no AI call and shows no values.
-4. Check the plan's function time limit against the routes' `maxDuration = 60`.
+3. Deploy, then open `/api/health`. `{"ok":true,...}` means the server can read the credentials; anything else names the setting to fix. It makes no AI call and shows no values.
+4. The AI routes need up to 60 seconds each (`maxDuration = 60`), so check your plan's function time limit.
 
-On the deployed site the `/dev/*` pages and `/api/save-manual` answer "not found" by design, and the Fake data badge is not shown. To run the deployed site without AI calls, set `NEXT_PUBLIC_MOCK_AI=1` there and redeploy.
+On the deployed site, the `/dev/*` pages and `/api/save-manual` answer "not found" on purpose, and the Fake data badge is hidden. To run the deployed site without AI calls, set `NEXT_PUBLIC_MOCK_AI=1` and redeploy.
 
-## Running the demo with no internet (backup plan)
+## Demo with no internet (backup plan)
 
-Everything on the demo path (library → KALLAX → every step) is served from files in this repo, so it works with Wi-Fi off. Do steps 1 and 2 while you still have a connection.
+The library and the full KALLAX walkthrough are served from files in this repo, so they work with Wi-Fi off. Run the first two commands while you still have a connection.
 
-1. ```bash
-   npm install
-   ```
-2. ```bash
-   npm run build
-   ```
-3. ```bash
-   npm start
-   ```
-4. Open http://localhost:3000.
+```bash
+npm install
+```
+```bash
+npm run build
+```
+```bash
+npm start
+```
 
-What does not work offline: uploading a manual and "Re-analyze live", since both call Gemini. With `NEXT_PUBLIC_MOCK_AI=1` in `.env.local` before step 2, uploads run on saved KALLAX answers instead.
+Then open http://localhost:3000. Uploading a new manual needs Gemini, so it does not work offline unless `NEXT_PUBLIC_MOCK_AI=1` was set in `.env.local` before the build; uploads then use the saved KALLAX answers.
