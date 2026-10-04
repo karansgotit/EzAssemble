@@ -90,7 +90,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     const normal = FACE_NORMALS[action.face ?? "top"] ?? FACE_NORMALS.top;
 
     if (action.verb === "flip") {
-      const quaternion = flipRotation(manual.buildOrientation, action.flipMode ?? "stand-up");
+      const quaternion = flipRotation(manual.buildOrientation, action.flipMode ?? "stand-up", state.assembly.quaternion);
       state.assembly = { quaternion, position: settleOnFloor(assemblyBounds(state, manual), quaternion) };
       return { action, ids: [ASSEMBLY_ID], normal };
     }

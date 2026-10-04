@@ -124,14 +124,37 @@ export function alongNormal(normal: Vec3): Quat {
   return toQuat(new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), new Vector3(...normal)));
 }
 
-// The whole-assembly rotation a flip ends in. "turn-over" is half a turn about x. "stand-up"
-// for an on-back build sends the length (+x) down, so the x = 0 end finishes on top, and the
-// open front (+y) toward the viewer. The other build orientations come in AJI-04.
-export function flipRotation(orientation: BuildOrientation, mode: "stand-up" | "turn-over"): Quat {
-  if (mode === "turn-over") return toQuat(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI));
-  if (orientation !== "on-back") return NO_ROTATION;
-  const basis = new Matrix4().makeBasis(new Vector3(0, -1, 0), new Vector3(0, 0, 1), new Vector3(-1, 0, 0));
+const HALF_TURN_ABOUT_X = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+
+// Where each build-frame axis (+x, +y, +z) points once the furniture stands as it is used.
+// Lying builds have their height along +x, and by convention the x = 0 end is the top.
+const UPRIGHT_AXES: Record<BuildOrientation, [Vec3, Vec3, Vec3]> = {
+  upright: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+  // On its back, open front facing up: the height drops, the front turns to the viewer.
+  "on-back": [[0, -1, 0], [0, 0, 1], [-1, 0, 0]],
+  // On its side, front already toward the viewer: a quarter turn about z.
+  "on-side": [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+  // Top on the floor: half a turn about x (CONTRACTS §4.1).
+  "upside-down": [[1, 0, 0], [0, -1, 0], [0, 0, -1]],
+};
+
+// The whole-assembly rotation that shows a build of this orientation standing upright.
+export function uprightRotation(orientation: BuildOrientation): Quat {
+  const [x, y, z] = UPRIGHT_AXES[orientation] ?? UPRIGHT_AXES.upright;
+  const basis = new Matrix4().makeBasis(new Vector3(...x), new Vector3(...y), new Vector3(...z));
   return toQuat(new Quaternion().setFromRotationMatrix(basis));
+}
+
+// The whole-assembly rotation after a flip. "stand-up" ends upright whatever came before;
+// "turn-over" adds half a turn about x to the current rotation, so two of them cancel.
+export function flipRotation(orientation: BuildOrientation, mode: "stand-up" | "turn-over", current: Quat): Quat {
+  if (mode === "stand-up") return uprightRotation(orientation);
+  return toQuat(HALF_TURN_ABOUT_X.clone().multiply(fromQuat(current)));
+}
+
+// q and -q are the same rotation, so compare by the size of the dot product.
+export function sameRotation(a: Quat, b: Quat): boolean {
+  return Math.abs(a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]) > 1 - 1e-6;
 }
 
 // Where to put the assembly group so it turns about the centre of `bounds` and its lowest
