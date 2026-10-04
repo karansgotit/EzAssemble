@@ -1,0 +1,256 @@
+/* Home: what it does, the three steps, and the drop zone. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-5) var(--space-8);
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+/* Left: what this is. Right: the one thing to do. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.pitch h1 {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.2rem + 3.6vw, 4.25rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.pitch p {
+  max-width: 34rem;
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+}
+
+.heading {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Three steps, in order. */
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-5);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.howNumber {
+  grid-row: 1 / span 2;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--color-accent);
+}
+
+.how strong {
+  font-size: var(--text-lg);
+}
+
+.how p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+}
+
+/* One real step, before and after. */
+.example {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) auto minmax(0, 6fr);
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.before {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper); /* a printed drawing: white in both themes */
+  box-shadow: var(--shadow-sm);
+}
+
+.before :global(.eyebrow) {
+  color: var(--color-paper-muted);
+}
+
+.before img {
+  display: block;
+  width: 100%;
+}
+
+.arrow {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 900;
+}
+
+.after {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.after p {
+  margin: 0;
+}
+
+.sentence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  font-size: clamp(1.25rem, 0.9rem + 1vw, 1.75rem);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+}
+
+.sentence span {
+  font-family: var(--font-display);
+  font-size: 3em;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+}
+
+.after ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--color-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each saved manual is its own first drawing: a sheet of paper. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.card:hover {
+  border-color: var(--color-ink);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card img {
+  width: 100%;
+  height: 11rem;
+  margin-bottom: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  object-fit: contain;
+}
+
+.card strong {
+  font-size: var(--text-lg);
+}
+
+.card span {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+/* "Opening the manual…" on the manual page. */
+.status {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5);
+  font-size: var(--text-xl);
+  color: var(--color-muted);
+}
+
+@media (max-width: 60rem) {
+  .page {
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-4) var(--space-7);
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .how {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 40rem) {
+  .example {
+    grid-template-columns: 1fr;
+  }
+
+  .arrow {
+    justify-self: start;
+    transform: rotate(90deg);
+  }
+}

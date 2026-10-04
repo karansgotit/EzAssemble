@@ -1,11 +1,134 @@
-/* Placeholder tokens. The real design tokens from Claude Design land here in SMI-11. */
+/* Design tokens. Colours, spacing, radii and shadows come from docs/design/tokens.css (SHR-03); the 3D
+   scene reads the --scene-* ones. Type follows docs/design/brief/03-direction.md: "Read from the floor". */
 :root {
-  --color-bg: #ffffff;
-  --color-text: #111111;
-  --color-muted: #555555;
-  --color-accent: #0058a3;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Page colours */
+  --color-bg: #f4f5f2;
+  --color-surface: #ffffff;
+  --color-ink: #14161a;
+  --color-muted: #5a6068;
+  --color-line: #d9dcd6;
+  --color-line-strong: #14161a;
+  --color-accent: #2447e0;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #e3e9ff;
+
+  /* Status colours. Red and green are for wrong and right only, and always carry a ✗ or ✓. */
+  --color-warn: #6b4500;
+  --color-warn-soft: #fff1cc;
+  --color-warn-line: #e0b64a;
+  --color-wrong: #c8321e;
+  --color-wrong-soft: #fbe4df;
+  --color-right: #1b7a48;
+  --color-right-soft: #ddf3e6;
+
+  /* 3D scene (read by scene/useSceneColors.tsx): a line drawing, white parts, dark outlines, one accent */
+  --scene-bg: #fafaf8;
+  --scene-floor: #ecede8;
+  --scene-part: #ffffff;
+  --scene-part-edge: #8b9096;
+  --scene-current: #c9d6ff;
+  --scene-current-edge: #14161a;
+  --scene-guide: #2447e0;
+  --scene-wood: #d8b98a;
+  --scene-steel: #b4bac2;
+  --scene-hole: #2a2d33;
+  --scene-wrong: #c8321e;
+  --scene-right: #1b7a48;
+
+  /* Type. The font variables are set on <html> by app/layout.tsx; each stack falls back to system fonts. */
+  --font-display: var(--font-schibsted), "Arial Black", system-ui, sans-serif; /* numerals and titles */
+  --font-sans: var(--font-atkinson), system-ui, -apple-system, "Segoe UI", sans-serif; /* everything read */
+  --font-mono: var(--font-atkinson-mono), ui-monospace, "Cascadia Mono", monospace; /* counts, part numbers */
+  --text-xs: 0.875rem; /* the smallest text anywhere: 14px */
+  --text-sm: 1rem;
+  --text-md: 1.125rem; /* part names, buttons */
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem; /* titles */
+  --text-2xl: 2.5rem;
+  --text-instruction: clamp(1.5rem, 1rem + 1.75vw, 2.375rem); /* the sentence, read from two metres */
+  --text-numeral: clamp(5rem, 2rem + 9vw, 11rem); /* the step number, at the manual's scale */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Borders and shadows */
+  --border: 1.5px solid var(--color-line);
+  --border-strong: 1.5px solid var(--color-line-strong);
+  --shadow-sm: 0 1px 2px rgba(20, 22, 26, 0.12);
+  --shadow-md: 0 8px 24px rgba(20, 22, 26, 0.16);
+
+  /* Controls */
+  --control-height: 44px;
+  --control-height-lg: 56px; /* previous, next and play: reachable without aiming */
+  --page-max: 88rem;
+
+  --color-accent-strong: #1b38b8; /* the accent, pressed or hovered */
+
+  /* Paper: the manual's drawings are black on white, so the sheet they sit on stays white in both themes. */
+  --color-paper: #ffffff;
+  --color-paper-ink: #14161a;
+  --color-paper-muted: #5a6068;
+
+  --color-text: var(--color-ink); /* old name, still used by the dev pages */
+  color-scheme: light;
 }
+
+/* Dark theme. Light is the default; dark applies only when chosen with the switch (app/components/ThemeToggle.tsx). */
+:root[data-theme="dark"] {
+  --color-bg: #121418;
+  --color-surface: #1d2025;
+  --color-ink: #f1f2ee;
+  --color-muted: #a4aab2;
+  --color-line: #353941;
+  --color-line-strong: #f1f2ee;
+  --color-accent: #8298ff;
+  --color-accent-ink: #0c1024;
+  --color-accent-soft: #262d4d;
+  --color-accent-strong: #a9b8ff;
+
+  --color-warn: #f2c968;
+  --color-warn-soft: #382d12;
+  --color-warn-line: #7c601d;
+  --color-wrong: #ff8f7a;
+  --color-wrong-soft: #3f1e19;
+  --color-right: #62d39a;
+  --color-right-soft: #17362a;
+
+  /* The 3D view at night: the parts stay light, like paper under a lamp, on a dark floor. */
+  --scene-bg: #191b20;
+  --scene-floor: #24272d;
+  --scene-part: #e8e9ec;
+  --scene-part-edge: #6f757e;
+  --scene-current: #8fa3ff;
+  --scene-current-edge: #0b0c0f;
+  --scene-guide: #8298ff;
+  --scene-wood: #c9a878;
+  --scene-steel: #a3aab3;
+  --scene-hole: #1c1e23;
+  --scene-wrong: #ff6f5a;
+  --scene-right: #48c486;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
 
 *,
 *::before,
@@ -21,15 +144,98 @@ body {
 
 body {
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  line-height: 1.5;
+  font-size: var(--text-md);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: var(--color-accent);
+  text-underline-offset: 0.18em;
 }
 
+img {
+  max-width: 100%;
+}
+
+/* A focus ring that can be seen from across the room. */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Buttons. `.btn` is the quiet one; add `.btn-primary` for the one action that moves things forward. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-5);
+  border: var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.08s ease, background-color 0.12s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  border-color: var(--color-line);
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.btn-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+}
+
+.btn-primary:disabled {
+  border-color: var(--color-line);
+  background: var(--color-line);
+  color: var(--color-muted);
+}
+
+.btn-lg {
+  min-height: var(--control-height-lg);
+  padding: 0 var(--space-6);
+  font-size: var(--text-lg);
+}
+
+/* Small capital label above a block: "From the manual", "What you'll use". */
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Plain centred block, used by the team's dev pages. */
 .placeholder {
   max-width: 40rem;
   margin: 0 auto;
@@ -38,4 +244,14 @@ a {
 
 .placeholder p {
   color: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

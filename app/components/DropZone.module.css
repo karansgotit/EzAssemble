@@ -1,0 +1,71 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* A blank sheet waiting for the manual. */
+.zone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: 17rem;
+  padding: var(--space-6);
+  border: 2.5px dashed var(--color-ink);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+
+.zone:hover,
+.zone:focus-within {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.zone[data-dragging="true"] {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  transform: scale(1.01);
+}
+
+.zone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.sheetIcon {
+  width: 3rem;
+  margin-bottom: auto;
+  color: var(--color-ink);
+}
+
+.zone strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.zone span {
+  font-size: var(--text-md);
+  color: var(--color-muted);
+}
+
+.problem {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1.5px solid var(--color-wrong);
+  border-radius: var(--radius-md);
+  background: var(--color-wrong-soft);
+  color: var(--color-wrong);
+  font-weight: var(--weight-bold);
+}

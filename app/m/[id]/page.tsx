@@ -8,7 +8,7 @@ import { StepPlayer } from "@/player/StepPlayer";
 import { buildSceneManual } from "@/scene/buildSceneManual";
 import type { SceneManual } from "@/schema";
 import { ErrorScreen } from "../../components/ErrorScreen";
-import styles from "../../library.module.css";
+import styles from "../../home.module.css";
 
 /** "/m/kallax": loads a saved manual, validates it, and plays it. Invalid data shows the red error screen (FR-02). */
 export default function ManualPage() {
@@ -34,12 +34,5 @@ export default function ManualPage() {
   if (result === null) return <p className={styles.status}>Opening the manual…</p>;
   if (!result.ok) return <ErrorScreen title="This manual couldn't be opened" errors={result.errors} />;
 
-  return (
-    <>
-      <Link className={styles.back} href="/">
-        ← Library
-      </Link>
-      <StepPlayer manual={result.data} mode="library" />
-    </>
-  );
+  return <StepPlayer manual={result.data} mode="library" back={<Link href="/">← All manuals</Link>} />;
 }

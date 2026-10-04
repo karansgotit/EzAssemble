@@ -1,0 +1,20 @@
+.toggle {
+  position: fixed;
+  top: var(--space-2);
+  right: var(--space-3);
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: var(--border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  border-color: var(--color-ink);
+}

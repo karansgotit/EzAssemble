@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampStepIndex, hasAnimation, partsForStep, shouldAutoplayTrap, trapButtonLabel } from "@/player/stepView";
+import { clampStepIndex, hasAnimation, markerDescription, partsForStep, shouldAutoplayTrap, stepMarkers, trapButtonLabel } from "@/player/stepView";
 import type { ScenePart, SceneStep, SceneTrap } from "@/player/tempContracts";
 
 const parts: ScenePart[] = [
@@ -90,5 +90,33 @@ describe("clampStepIndex", () => {
     expect(clampStepIndex(9, 6)).toBe(5);
     expect(clampStepIndex(2, 6)).toBe(2);
     expect(clampStepIndex(0, 0)).toBe(0);
+  });
+});
+
+describe("stepMarkers", () => {
+  const markers = stepMarkers([
+    step({ stepNumber: 1, trap }),
+    step({ stepNumber: 2, confidence: "low" }),
+    step({ stepNumber: 3, kind: "subassembly" }),
+    step({ stepNumber: 8, kind: "failed", confidence: "low", trap }),
+    step({ stepNumber: 16, kind: "info" }),
+  ]);
+
+  it("labels each marker with the manual's own step number", () => {
+    expect(markers.map((m) => m.label)).toEqual(["1", "2", "3", "8", "16"]);
+  });
+
+  it("flags warnings and unsure steps only on animated steps", () => {
+    expect(markers.map((m) => [m.warning, m.unsure])).toEqual([[true, false], [false, true], [false, false], [false, false], [false, false]]);
+  });
+
+  it("describes each marker in words", () => {
+    expect(markers.map(markerDescription)).toEqual([
+      "Step 1, has a warning",
+      "Step 2, the AI was unsure",
+      "Step 3, assembled separately",
+      "Step 8, could not be read",
+      "Step 16, information only",
+    ]);
   });
 });

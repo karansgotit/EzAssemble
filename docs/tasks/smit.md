@@ -73,6 +73,12 @@
 
 ---
 
+**Changed while applying the design (Smit's call, 2026-10-04)**
+- The player has no scrubber and no play / pause. A step's animation plays when the step opens; **Replay** (or Space / R) plays it again, and the speed can still be set to 0.5× / 1× / 2×. This departs from FR-31.
+- The 3D animation is the largest thing on the screen, with the printed drawing in a narrow column beside it and the step number and sentence directly underneath.
+
+---
+
 ### SMI-04 · API client + mock
 **Labels:** client, P0 · **Hours:** 4:00–5:00 · **Depends on:** KAR-01, KAR-02
 

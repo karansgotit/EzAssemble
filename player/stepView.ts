@@ -37,3 +37,32 @@ export function trapButtonLabel(trap: SceneTrap | undefined): string | null {
 export function clampStepIndex(index: number, total: number): number {
   return Math.min(Math.max(Math.trunc(index), 0), Math.max(total - 1, 0));
 }
+
+/** What a step's marker in the navigation shows: a small map of the manual, not a row of identical dots. */
+export type StepMarker = {
+  label: string; // the manual's own step number
+  kind: SceneStep["kind"];
+  warning: boolean; // the step has a wrong-way preview
+  unsure: boolean; // the AI was not certain about it
+};
+
+export function stepMarkers(steps: readonly SceneStep[]): StepMarker[] {
+  return steps.map((step) => ({
+    label: String(step.stepNumber),
+    kind: step.kind,
+    warning: hasAnimation(step) && step.trap !== undefined,
+    unsure: step.kind === "assembly" && step.confidence === "low",
+  }));
+}
+
+/** What a screen reader hears for a marker: "Step 7, has a warning". */
+export function markerDescription(marker: StepMarker): string {
+  const notes = [
+    marker.kind === "info" && "information only",
+    marker.kind === "subassembly" && "assembled separately",
+    marker.kind === "failed" && "could not be read",
+    marker.warning && "has a warning",
+    marker.unsure && "the AI was unsure",
+  ].filter(Boolean);
+  return [`Step ${marker.label}`, ...notes].join(", ");
+}

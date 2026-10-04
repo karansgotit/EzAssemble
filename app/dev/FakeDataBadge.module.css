@@ -1,10 +1,11 @@
 .badge {
   position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
+  left: 50%;
+  top: 0.4rem;
   z-index: 1000;
   display: flex;
   gap: 0.25rem;
+  transform: translateX(-50%);
 }
 
 .badge button {
