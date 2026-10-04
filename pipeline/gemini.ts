@@ -19,6 +19,7 @@ const vertexGenerate: Generate = async ({ model, prompt, images, jsonSchema, sig
       ...(model === MODELS.strong ? { temperature: TEMPERATURE } : {}),
       maxOutputTokens: MAX_OUTPUT_TOKENS, abortSignal: signal,
       httpOptions: { timeout: timeoutMs, retryOptions: { attempts: 1 } },
+      // Gemini 3 uses thinking levels; the shared deadline bounds request latency.
       thinkingConfig: { thinkingLevel: THINKING_LEVEL },
     },
   });
@@ -55,6 +56,9 @@ export function toGeminiSchema(node: unknown): unknown {
     }
     out.required = Object.keys(properties);
   }
+  // Vertex rejects (HTTP 400) a list of objects with a large maxItems, e.g. PartsLayout's 80 parts (KAR-07).
+  // Drop it for lists of objects; Zod still enforces the limit on the answer.
+  if (out.type === "array" && (out.items as { properties?: unknown } | undefined)?.properties) delete out.maxItems;
   return out;
 }
 

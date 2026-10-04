@@ -79,6 +79,15 @@ describe("toGeminiSchema", () => {
     expect([...used].filter(key => !supported.has(key))).toEqual([]);
   });
 
+  it("drops maxItems from lists of objects (Vertex rejects PartsLayout's 80) but keeps tuple lengths", () => {
+    const sent = toGeminiSchema(z.toJSONSchema(PartsLayout, { io: "input" })) as {
+      properties: { parts: { maxItems?: number; minItems?: number; items: { properties: { homeFrac: { anyOf: { maxItems?: number }[] } } } } };
+    };
+    expect(sent.properties.parts.maxItems).toBeUndefined();
+    expect(sent.properties.parts.minItems).toBe(1);
+    expect(sent.properties.parts.items.properties.homeFrac.anyOf[0].maxItems).toBe(3);
+  });
+
   it("makes optional fields required but nullable, so Gemini always decides on them", () => {
     const sent = toGeminiSchema(z.toJSONSchema(z.object({ target: z.string(), face: z.string().optional() }), { io: "input" }));
     expect(sent).toMatchObject({

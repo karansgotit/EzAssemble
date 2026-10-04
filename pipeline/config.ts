@@ -10,6 +10,7 @@ export const TEMPERATURE = 0;   // Pro setting retained from eval; Flash 3.8 ign
 export const REQUEST_TIMEOUT_MS = 55_000; // leaves headroom inside the 60 s route
 export const MAX_OUTPUT_TOKENS = 8192;
 export const ANALYZE_STEP_MODEL: ModelTier = "fast";
+export const PARTS_MODEL: ModelTier = "fast"; // KAR-07: Flash beat Pro on KALLAX (orientation, layout, holes) at 25 s vs 40 s
 // Unlimited thinking took 100–200 s and up to 30k tokens per step (KAR-04 spike); routes have 60 s.
 export const THINKING_LEVEL = ThinkingLevel.LOW;
 
