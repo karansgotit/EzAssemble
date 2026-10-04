@@ -2,6 +2,17 @@ import type { Verb } from "./types";
 
 // Real dowels and screws are a few mm wide next to 140 cm panels; drawn larger so they read.
 export const HARDWARE_SCALE = 2.5;
+const HARDWARE_SCALE_AT_CM = 147; // the furniture size that scale was chosen for (KALLAX)
+const HARDWARE_SCALE_RANGE: [number, number] = [1.25, 3.2];
+
+// The hardware scale for a piece of furniture: the same share of the picture on a 55 cm table
+// as on a 147 cm shelf, within limits that keep a dowel visible and never bigger than a leg.
+export function hardwareScaleFor(buildSizeCm: readonly number[] | undefined): number {
+  const longest = Math.max(...(Array.isArray(buildSizeCm) ? buildSizeCm : []).filter((n) => Number.isFinite(n) && n > 0), 0);
+  if (longest === 0) return HARDWARE_SCALE;
+  const [min, max] = HARDWARE_SCALE_RANGE;
+  return Math.max(min, Math.min(max, (HARDWARE_SCALE * longest) / HARDWARE_SCALE_AT_CM));
+}
 
 // Seconds at speed 1.
 export const DURATIONS: Record<Verb, number> = {

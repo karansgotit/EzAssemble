@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HARDWARE_SCALE } from "@/scene/constants";
+import { hardwareScaleFor } from "@/scene/constants";
 import { cylinderIn, rotate } from "@/scene/geometry";
 import { hardwareMotion, resolveScene } from "@/scene/resolveScene";
 import { buildTracks, sample } from "@/scene/tracks";
@@ -13,7 +13,8 @@ const solid = (id: string, kind: PartKind, shape: "box" | "cylinder", sizeCm: Ve
 const hardware = (kind: PartKind): ScenePart => ({
   id: kind, label: kind, kind, count: 8, shape: "cylinder", hardwareMm: { length: 30, diameter: 8 }, features: [],
 });
-const LENGTH = (30 / 10) * HARDWARE_SCALE;
+const SCALE = hardwareScaleFor([40, 23, 30]); // small furniture gets smaller hardware
+const LENGTH = (30 / 10) * SCALE;
 
 const parts: ScenePart[] = [
   solid("base", "panel", "box", [40, 3, 30], [20, 1.5, 15]),
@@ -70,7 +71,7 @@ describe("hardware kinds", () => {
         const { tracks, totalDuration } = play([into(kind, verb)]);
         const [track] = tracks;
         expect(track.verb, kind).toBe("insert");
-        expect(track.from.position[1] - track.to.position[1]).toBeCloseTo(6); // straight down the normal
+        expect(track.from.position[1] - track.to.position[1]).toBeCloseTo((6 * SCALE) / 2.5); // straight down the normal
         expect(track.from.position[0]).toBe(track.to.position[0]);
         expect(sample(tracks, totalDuration).get(track.id)?.spin).toBe(0);
         expect(sample(tracks, 0).get(track.id)?.spin).toBe(0);

@@ -131,6 +131,29 @@ export function cornersOf(bounds: Bounds): Vec3[] {
   return corners;
 }
 
+const dot = (a: Vec3, b: Vec3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const unit = (v: Vec3): Vec3 => scale(v, 1 / (Math.hypot(...v) || 1));
+
+// How far from the centre of `bounds` a camera must sit, back along `view` (the direction
+// from the box toward the camera), for every corner to be inside the picture. `verticalFov`
+// is in radians; `aspect` is width / height.
+export function fitDistance(bounds: Bounds, view: Vec3, verticalFov: number, aspect: number): number {
+  const toCamera = unit(view);
+  const right = unit(cross([0, 1, 0], toCamera));
+  const up = cross(toCamera, right);
+  const centre = mix(bounds.min, bounds.max, 0.5);
+  const tanV = Math.tan(verticalFov / 2);
+  const tanH = tanV * Math.max(aspect, 1e-6);
+  let distance = 0;
+  for (const corner of cornersOf(bounds)) {
+    const rel = add(corner, scale(centre, -1));
+    const sideways = Math.max(Math.abs(dot(rel, right)) / tanH, Math.abs(dot(rel, up)) / tanV);
+    distance = Math.max(distance, dot(rel, toCamera) + sideways);
+  }
+  return distance;
+}
+
 export function rotate(v: Vec3, q: Quat): Vec3 {
   const out = new Vector3(...v).applyQuaternion(fromQuat(q));
   return [out.x, out.y, out.z];

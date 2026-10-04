@@ -1,6 +1,6 @@
 import {
   ACTION_GAP, DURATIONS, END_HOLD, HARDWARE_APPROACH_CM, HARDWARE_SCALE, PANEL_APPROACH_CM,
-  PANEL_APPROACH_FRAC, SCREW_TURNS, STAGGER, WAITING_OPACITY,
+  PANEL_APPROACH_FRAC, SCREW_TURNS, STAGGER, WAITING_OPACITY, hardwareScaleFor,
 } from "./constants";
 import { add, mix, normalAxis, scale, settleOnFloor, slerp, type Bounds, type Quat } from "./geometry";
 import { ASSEMBLY_ID, assemblyBounds, type SceneState } from "./resolveScene";
@@ -39,7 +39,7 @@ export function buildTracks(
   manual: SceneManual,
   before: SceneState,
   after: SceneState,
-  hardwareScale = HARDWARE_SCALE,
+  hardwareScale = hardwareScaleFor(manual?.buildSizeCm),
 ): { tracks: Track[]; totalDuration: number } {
   const tracks: Track[] = [];
   const actions = after.stepActions.length > before.stepActions.length ? after.stepActions[after.stepActions.length - 1] : [];

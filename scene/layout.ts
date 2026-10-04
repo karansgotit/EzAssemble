@@ -1,9 +1,9 @@
 import { validateLayout } from "./layoutChecks";
-import { decideCorners, groupsOf, snapFaces, spaceEvenly, type Box } from "./layoutSnap";
+import { blockGroupsOf, decideCorners, groupsOf, snapFaces, spaceEvenly, stackBlocks, type Box } from "./layoutSnap";
 import { HARDWARE_KINDS, type AiPart, type PartsLayout, type ScenePart, type Vec3 } from "./types";
 
-// Board thicknesses IKEA actually uses, in cm.
-export const THICKNESS_CLASSES_CM = [1.2, 1.6, 1.8, 2.5, 3.8];
+// Board thicknesses IKEA actually uses, in cm. 5 is the thick hollow board of table tops.
+export const THICKNESS_CLASSES_CM = [1.2, 1.6, 1.8, 2.5, 3.8, 5];
 
 // How far a face may sit from a box side or neighbouring board and still be pulled onto it, as a
 // fraction of the product size on that axis. The docs say 4%, but ±8% noise on a centre near the
@@ -12,7 +12,9 @@ export const THICKNESS_CLASSES_CM = [1.2, 1.6, 1.8, 2.5, 3.8];
 export const SNAP_FRAC = 0.1;
 
 // Anything thicker than this is a block (leg, drawer), not a board.
-const MAX_BOARD_CM = 4.8;
+const MAX_BOARD_CM = 5.6;
+// Blocks with the same name count as identical when no side differs from the median by more.
+const SAME_SIZE_FRAC = 0.15;
 const MAX_PASSES = 5;
 const AXES = [0, 1, 2];
 
@@ -62,6 +64,28 @@ function snapThickness(boxes: Box[]): void {
       const centre = (b.lo[a] + b.hi[a]) / 2;
       b.lo[a] = centre - thickness / 2;
       b.hi[a] = centre + thickness / 2;
+    }
+  }
+}
+
+// Legs and other repeated blocks are identical pieces too: "Leg 1" to "Leg 4" get one size, the
+// median of their rough sizes. Blocks whose sizes really differ (two drawer heights) are left.
+const medianSizes = (group: Box[]): number[] => AXES.map((i) => median(group.map((b) => b.rawHi[i] - b.rawLo[i])));
+function alikeBlocks(group: Box[]): boolean {
+  const sizes = medianSizes(group);
+  return group.every((b) => AXES.every((i) => Math.abs(b.rawHi[i] - b.rawLo[i] - sizes[i]) <= SAME_SIZE_FRAC * sizes[i]));
+}
+
+function matchBlocks(boxes: Box[]): void {
+  for (const group of blockGroupsOf(boxes)) {
+    if (group.length < 2 || !alikeBlocks(group)) continue;
+    const sizes = medianSizes(group);
+    for (const b of group) {
+      for (const i of AXES) {
+        const centre = (b.lo[i] + b.hi[i]) / 2;
+        b.lo[i] = centre - sizes[i] / 2;
+        b.hi[i] = centre + sizes[i] / 2;
+      }
     }
   }
 }
@@ -124,8 +148,10 @@ export function snapLayoutWith(layout: PartsLayout, buildSizeCm: Vec3, snapFrac:
   }
 
   snapThickness(boxes);
+  matchBlocks(boxes);
   flushBoards(boxes, buildSizeCm, snapFrac);
   const corners = decideCorners(boxes, buildSizeCm, snapFrac);
+  if (sizeOk) stackBlocks(boxes, buildSizeCm, snapFrac, alikeBlocks);
   // Step 4's loop: each pass can only use neighbours as exact as the previous pass left them.
   for (let pass = 0; pass < MAX_PASSES; pass++) {
     const spaced = spaceEvenly(boxes, buildSizeCm, snapFrac);
