@@ -1,6 +1,7 @@
 // The upload orchestrator: one PDF in, one SavedManual out, with progress events along the way.
 // Runs in the browser. Flow A in docs/ARCHITECTURE.md §5.
-import { toBuildSize } from "@/scene/buildSceneManual";
+import { buildSceneManual, toBuildSize } from "@/scene/buildSceneManual";
+import { checkConsistency } from "@/scene/consistency";
 import { snapLayout } from "@/scene/layout";
 import {
   checkCumulativeCounts,
@@ -192,6 +193,8 @@ export async function processManual(
   // A8. Checks across the whole manual: doubtful steps are marked, never dropped
   const okSteps: Step[] = steps.flatMap((saved) => (saved.status === "ok" ? [saved.step] : []));
   const doubtful = new Set(checkCumulativeCounts(okSteps, layout.parts).map((problem) => problem.stepNumber));
+  // A step that places a part against something it does not touch in the snapped layout is suspect too.
+  for (const problem of checkConsistency(buildSceneManual(snapshot(), "").manual)) doubtful.add(problem.stepNumber);
   for (const [i, saved] of steps.entries()) {
     const unsure = saved.status === "ok" && saved.step.kind === "assembly" && (doubtful.has(saved.step.stepNumber) || !snapped.ok);
     if (unsure) steps[i] = { ...saved, step: { ...saved.step, confidence: "low" } };

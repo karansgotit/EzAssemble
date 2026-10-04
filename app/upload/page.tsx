@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
+import { mockedRoutes } from "@/client/api";
 import { jpegDataUrl } from "@/client/canvas";
 import { type Crop, type ProcessEvent, processManual } from "@/client/processManual";
 import { idFromTitle, INTERIM_PRODUCT_SIZE_CM, overallProgress, stageLabel, titleFromFileName } from "@/client/uploadForm";
@@ -91,6 +92,14 @@ export default function UploadPage() {
     setRun(null);
   }
 
+  // Development only: routes that aren't built yet were answered from saved KALLAX data, not by the AI.
+  const mocked = run ? mockedRoutes() : [];
+  const devNote = mocked.length > 0 && (
+    <p className={styles.devNote} role="note">
+      Development: {mocked.join(", ")} {mocked.length === 1 ? "is" : "are"} not built yet, so {mocked.length === 1 ? "it was" : "they were"} answered from saved KALLAX data, not by the AI.
+    </p>
+  );
+
   if (run && scene) {
     return (
       <>
@@ -99,6 +108,7 @@ export default function UploadPage() {
             ← Upload another manual
           </button>
           {!run.running && run.manual && <SaveToLibrary manual={run.manual} crops={crops} />}
+          {devNote}
         </div>
         <StepPlayer manual={scene} mode="library" />
       </>
@@ -109,6 +119,7 @@ export default function UploadPage() {
     <main className={styles.page}>
       <Link href="/">← Library</Link>
       <h1>Upload a manual</h1>
+      {devNote}
       {run ? (
         <ProgressView {...run} onCancel={cancel} onOpenPlayer={() => setPlayerOpen(true)} onStartOver={startOver} />
       ) : (

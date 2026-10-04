@@ -136,6 +136,17 @@ describe("processManual when things go wrong", () => {
     expect(manual.layout).toEqual(gold.layout);
   });
 
+  it("marks a step low confidence when it places a part against something it does not touch", async () => {
+    const mock = createMockApi(gold, instant);
+    const wrongTarget = (step: Awaited<ReturnType<Api["analyzeStep"]>>) =>
+      step.ok ? { ...step, data: { ...step.data, actions: step.data.actions.map((action) => (action.verb === "place" && action.part === "S1" ? { ...action, target: "E2" } : action)) } } : step;
+    const api: Api = { ...mock, analyzeStep: async (req, opts) => (req.stepNumber === 3 ? wrongTarget(await mock.analyzeStep(req, opts)) : mock.analyzeStep(req, opts)) };
+    const { manual } = await run(api);
+    const confidence = (n: number) => okSteps(manual).find((step) => step.stepNumber === n)?.confidence;
+    expect(confidence(3)).toBe("low");
+    expect(confidence(5)).toBe(okSteps(gold).find((step) => step.stepNumber === 5)?.confidence);
+  });
+
   it("stops when cancelled", async () => {
     const controller = new AbortController();
     const mock = createMockApi(gold, instant);
