@@ -1,0 +1,70 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.prev,
+.next {
+  padding: 0.5rem 1rem;
+  border: 1px solid #cccccc;
+  border-radius: 0.375rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.next {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.dots {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dots button {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.25rem;
+  border: 1px solid #cccccc;
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dots button.visited {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.dots button.current {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.nav button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
