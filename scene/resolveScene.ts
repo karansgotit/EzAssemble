@@ -4,7 +4,7 @@ import {
   FACE_NORMALS, NO_ROTATION, add, alongNormal, boundsOf, faceRect, flipRotation, jointStrip,
   pointsOnFace, scale, settleOnFloor, type Bounds, type Cuboid, type Quat,
 } from "./geometry";
-import { HARDWARE_KINDS, type Action, type PartKind, type SceneManual, type ScenePart, type Vec3 } from "./types";
+import { HARDWARE_KINDS, type Action, type PartKind, type SceneManual, type ScenePart, type Vec3, type Verb } from "./types";
 
 // One physical piece: "dowel#3" is the third dowel. Poses are in the build frame.
 export interface Placed extends Cuboid {
@@ -21,11 +21,13 @@ export interface AssemblyPose {
   quaternion: Quat;
 }
 
-// What one action did: the pieces it moved and the direction they came in along.
+// What one action did: the pieces it moved, the direction they came in along, and how they
+// move. `motion` is the action's verb, except that hardware moves the way its kind does.
 export interface ResolvedAction {
   action: Action;
   ids: string[];
   normal: Vec3;
+  motion: Verb;
 }
 
 export interface SceneState {
@@ -40,11 +42,16 @@ export const ASSEMBLY_ID = "assembly";
 const isHardware = (part: ScenePart): boolean => HARDWARE_KINDS.includes(part.kind);
 const instanceId = (partId: string, n: number): string => `${partId}#${n}`;
 
-// Fractions of a face's long side that hardware is spread between.
+// Screws and cam bolts are turned in; dowels, cams and nails are pushed or tapped straight in.
+const TURNED_IN: PartKind[] = ["screw", "camBolt"];
+export const hardwareMotion = (kind: PartKind): Verb => (TURNED_IN.includes(kind) ? "screw" : "insert");
+
+// Fractions of a face's long side that hardware is spread between when the action names no
+// `for` part. One piece lands mid-range (15%, 50%, 85%); several share the range.
 const SPREAD: Record<NonNullable<Action["at"]>, [number, number]> = {
-  start: [0.15, 0.15],
-  middle: [0.5, 0.5],
-  end: [0.85, 0.85],
+  start: [0.05, 0.25],
+  middle: [0.4, 0.6],
+  end: [0.75, 0.95],
   all: [0.15, 0.85],
 };
 const JOINT_SPREAD: [number, number] = [0.25, 0.75];
@@ -92,7 +99,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     if (action.verb === "flip") {
       const quaternion = flipRotation(manual.buildOrientation, action.flipMode ?? "stand-up", state.assembly.quaternion);
       state.assembly = { quaternion, position: settleOnFloor(assemblyBounds(state, manual), quaternion) };
-      return { action, ids: [ASSEMBLY_ID], normal };
+      return { action, ids: [ASSEMBLY_ID], normal, motion: "flip" };
     }
 
     const part = parts.get(action.part);
@@ -115,7 +122,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
         const piece = state.placed.get(id);
         if (piece) state.placed.set(id, { ...piece, spin: piece.spin + Math.PI / 2 });
       }
-      return { action, ids, normal };
+      return { action, ids, normal, motion: "lock" };
     }
 
     if (!isHardware(part)) {
@@ -129,7 +136,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
       // The first panel something is built onto is already lying there, even with no action of its own.
       introduceTarget();
       for (const id of ids) putSolid(part, box, id);
-      return { action, ids, normal };
+      return { action, ids, normal, motion: action.verb === "attach" ? "attach" : "place" };
     }
 
     if (!part.hardwareMm) return skip(`hardware "${part.id}" has no size`);
@@ -152,6 +159,7 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
     const diameter = (part.hardwareMm.diameter / 10) * hardwareScale;
     // Dowels sit half in each panel; everything else is driven in until its head is flush.
     const sink = part.kind === "dowel" ? 0 : length / 2;
+    const motion = hardwareMotion(part.kind);
     ids.forEach((id, i) => {
       state.placed.set(id, {
         id,
@@ -161,11 +169,11 @@ export function resolveScene(manual: SceneManual, upToStep: number, hardwareScal
         position: add(points[i], scale(normal, -sink)),
         size: [diameter, length, diameter],
         quaternion: alongNormal(normal),
-        spin: action.verb === "screw" ? SCREW_TURNS * 2 * Math.PI : 0,
+        spin: motion === "screw" ? SCREW_TURNS * 2 * Math.PI : 0,
       });
     });
-    if (action.verb === "insert") inserted.set(part.id, [...(inserted.get(part.id) ?? []), ...ids]);
-    return { action, ids, normal };
+    inserted.set(part.id, [...(inserted.get(part.id) ?? []), ...ids]);
+    return { action, ids, normal, motion };
   };
 
   const steps = Array.isArray(manual.steps) ? manual.steps : [];
