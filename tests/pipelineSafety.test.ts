@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { SavedManual } from "@/schema";
 import { callStructured, type Generate } from "@/pipeline/gemini";
 import { analyzeStep } from "@/pipeline/analyzeStep";
+import { partsLayout } from "@/pipeline/partsLayout";
+import { layout } from "./helpers/schemaFixtures";
 import { MAX_OUTPUT_TOKENS, MODELS } from "@/pipeline/config";
 
 const sdk = vi.hoisted(() => vi.fn());
@@ -20,6 +22,18 @@ it("caps SDK output and disables hidden transport retries", async () => {
     abortSignal: expect.any(AbortSignal), httpOptions: { retryOptions: { attempts: 1 } } });
   expect(sdk.mock.calls[0][0].config).not.toHaveProperty("temperature");
   expect(sdk.mock.calls[0][0].config.httpOptions.timeout).toBeLessThanOrEqual(55_000);
+});
+
+it("uses Flash LOW for parts without a deprecated thinking budget", async () => {
+  sdk.mockResolvedValue({ text: JSON.stringify(layout) });
+  const result = await partsLayout({ title: "KALLAX", productSizeCm: [77, 147, 39],
+    cover: "COVER", partsPages: ["PARTS"], stepThumbs: [] });
+  expect(result).toMatchObject({ ok: true, attempts: 1 });
+  const request = sdk.mock.calls[0][0];
+  expect(request.model).toBe(MODELS.fast);
+  expect(request.config.thinkingConfig).toEqual({ thinkingLevel: "LOW" });
+  expect(request.config.maxOutputTokens).toBe(MAX_OUTPUT_TOKENS);
+  expect(request.config.httpOptions.timeout).toBeLessThanOrEqual(55_000);
 });
 
 it("returns a bounded failure even when a generator ignores cancellation", async () => {
