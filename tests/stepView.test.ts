@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clampStepIndex, hasAnimation, markerDescription, partsForStep, shouldAutoplayTrap, stepMarkers, trapButtonLabel } from "@/player/stepView";
-import type { ScenePart, SceneStep, SceneTrap } from "@/player/tempContracts";
+import type { ScenePart, SceneStep, SceneTrap } from "@/schema";
 
 const parts: ScenePart[] = [
   { id: "L1", label: "Long panel", kind: "panel", count: 1, shape: "box", features: [] },

@@ -3,7 +3,6 @@ import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next, Schibsted_Grote
 import type { ReactNode } from "react";
 import { themeBootScript } from "./components/themeBoot";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { FakeDataBadge } from "./dev/FakeDataBadge";
 import "./globals.css";
 
 // Downloaded at build time and served from our own site, so the app still works with no internet.
@@ -29,7 +28,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <ThemeToggle />
         {children}
-        {process.env.NODE_ENV === "development" && <FakeDataBadge />}
       </body>
     </html>
   );

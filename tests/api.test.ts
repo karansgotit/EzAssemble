@@ -131,42 +131,6 @@ describe("createApi", () => {
   });
 });
 
-describe("createApi with a development fallback", () => {
-  const fallback = () => ({ api: createMockApi(gold, { delay: async () => {} }), missing: new Set<string>() });
-
-  it("answers from the fallback when the route is not built (404), and asks the server only once", async () => {
-    const { deps, calls } = fakeDeps(new Response("", { status: 404 }));
-    const route = fallback();
-    const api = createApi(deps, route);
-    expect(await api.indexPage({ image: "abc", pageNumber: 9 })).toMatchObject({ ok: true, data: gold.pages[8] });
-    expect(await api.indexPage({ image: "abc", pageNumber: 10 })).toMatchObject({ ok: true, data: gold.pages[9] });
-    expect(calls).toHaveLength(1);
-    expect([...route.missing]).toEqual(["/api/index-page"]);
-  });
-
-  it("uses the real answer when the route exists, and falls back per route", async () => {
-    const { deps, calls } = fakeDeps(json(okBody), new Response("", { status: 404 }));
-    const route = fallback();
-    const api = createApi(deps, route);
-    expect(await api.indexPage(request)).toEqual(okBody);
-    expect(await api.analyzeStep({ image: "abc", stepNumber: 2, parts: [], placedPartIds: [], previousInstructions: [] })).toMatchObject({ ok: true, data: { stepNumber: 2 } });
-    expect(calls.map((call) => call.url)).toEqual(["/api/index-page", "/api/analyze-step"]);
-    expect([...route.missing]).toEqual(["/api/analyze-step"]);
-  });
-
-  it("does not fall back on other failures", async () => {
-    const { deps } = fakeDeps(json({}, 503), json({}, 503));
-    const route = fallback();
-    expect((await createApi(deps, route).indexPage(request)).ok).toBe(false);
-    expect(route.missing.size).toBe(0);
-  });
-
-  it("treats a 404 as a failure when there is no fallback (production)", async () => {
-    const { deps } = fakeDeps(new Response("", { status: 404 }));
-    expect(await createApi(deps).indexPage(request)).toMatchObject({ ok: false, errors: ["The server rejected the request (404)"] });
-  });
-});
-
 describe("createMockApi", () => {
   const instant = { delay: async () => {} };
   const stepRequest = (stepNumber: number) => ({ image: "abc", stepNumber, parts: [], placedPartIds: [], previousInstructions: [] });

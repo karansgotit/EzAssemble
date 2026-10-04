@@ -61,7 +61,6 @@ Other commands:
 | `npm run check:vertex` | One small real AI call to confirm your Google Cloud credentials work |
 | `npm run eval -- kallax` | Score the AI against the gold KALLAX manual (real, billed AI calls) |
 
-In development, the **Fake data** badge at the top centre of every page switches between the mock and the real API without a restart. The team's tool pages are at `/dev/pdf`, `/dev/player` and `/dev/scene`.
 
 ## Repository layout
 
@@ -76,12 +75,23 @@ In development, the **Fake data** badge at the top centre of every page switches
 | `player/` | Step player UI | Smit |
 | `fixtures/` | Hand-checked gold KALLAX manual for tests and eval | Karan |
 | `public/manuals/` | Saved, pre-processed manuals shown in the library | Smit |
-| `fake-data/` | Stand-in data and the fake-data switch for development | Smit |
 | `tests/` | Vitest tests | everyone |
 | `reference/prototype/` | Early visual prototype, reference only | — |
 | `docs/` | PRD, decisions, data contracts, architecture, conventions, tasks | everyone |
 
 Start with [`docs/README.md`](docs/README.md) for the project docs in reading order.
+
+## Deploying to Vercel
+
+1. Import the GitHub repository into Vercel. The defaults are right (framework Next.js, root directory the repo root).
+2. Under **Settings → Environment Variables**, add:
+   - `GOOGLE_CLOUD_PROJECT`
+   - `GOOGLE_CLOUD_LOCATION` (`global`)
+   - `GOOGLE_SERVICE_ACCOUNT_JSON`: the key as one line, pasted as is, with no quotes around it
+3. Deploy, then open `/api/health`. `{"ok":true,...}` means the server can read the credentials; anything else names the setting to fix. It makes no AI call and shows no values.
+4. The AI routes need up to 60 seconds each (`maxDuration = 60`), so check your plan's function time limit.
+
+On the deployed site, the `/dev/*` pages and `/api/save-manual` answer "not found" on purpose. To run the deployed site without AI calls, set `NEXT_PUBLIC_MOCK_AI=1` and redeploy.
 
 ## Demo with no internet (backup plan)
 

@@ -1,5 +1,5 @@
 // Pure helpers that decide what the player shows for a step.
-import type { PartKind, ScenePart, SceneStep, SceneTrap } from "./tempContracts";
+import type { PartKind, ScenePart, SceneStep, SceneTrap } from "@/schema";
 
 export type TrayItem = { id: string; label: string; ikeaNumber?: string; kind: PartKind | "unknown"; count: number };
 

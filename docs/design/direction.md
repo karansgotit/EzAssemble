@@ -1,4 +1,6 @@
-# 3. Design direction: "Read from the floor"
+# Design direction: "Read from the floor"
+
+> Why the app looks the way it does. Written before the design was built (SMI-11). Two things changed after it, on Smit's call: the 3D animation is now the largest thing on the step player, with the step number and sentence under it, and there is no scrubber or play / pause. `reference/` and the numbered files it mentions were part of a design brief that is no longer in the repo.
 
 This is the direction we want. It is opinionated on purpose. If you find a stronger answer to the same idea, take it and say why; if you drift toward something that would suit any web app, come back to this page.
 

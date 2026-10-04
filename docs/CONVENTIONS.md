@@ -11,7 +11,7 @@
 | `app/` pages (`page.tsx`, `upload/`, `m/`), `app/layout.tsx`, `app/globals.css` | **Smit** | read only |
 | `player/**`, `client/**`, `app/api/save-manual` | **Smit** | read only |
 | `public/manuals/**` | **Smit** (via Save to library) | Karan may fix data by hand during review |
-| `fake-data/**`, `public/fake-data/**`, `scripts/**` | **Smit** | read and import freely; ask Smit for changes |
+| `scripts/**` | **Smit** | read only |
 | `package.json`, `next.config.*`, `tsconfig.json`, `vitest.config.*` | **Smit** | ask Smit; never add a dependency without a team OK |
 | `docs/**`, `CLAUDE.md` | whole team | edit via PR, tell the team |
 | `reference/**` | nobody | read only; never import from it (D-17) |
@@ -79,7 +79,7 @@ Use versions compatible with React 19.2 (the reference prototype used R3F 9.4 / 
 | `GOOGLE_CLOUD_PROJECT` | server | Project with the credits |
 | `GOOGLE_CLOUD_LOCATION` | server | e.g. `global` (preview models) or a region |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | server | Service-account key (Vertex AI User role), one line |
-| `NEXT_PUBLIC_MOCK_AI` | browser | `1` → `getApi()` returns `client/api.mock.ts` (gold KALLAX, no AI calls). In development the "Fake data" badge overrides it per browser, with no restart |
+| `NEXT_PUBLIC_MOCK_AI` | browser | `1` → `getApi()` returns `client/api.mock.ts` (saved KALLAX answers, no AI calls). Read at build time, so restart or rebuild after changing it |
 
 `.env.example` (committed) lists these names with empty values; real values go in `.env.local` and in Vercel's settings.
 

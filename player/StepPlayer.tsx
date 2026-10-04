@@ -1,28 +1,30 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type ComponentType, type ReactNode, useEffect, useReducer, useRef, useState } from "react";
+import { type ReactNode, useEffect, useReducer, useRef, useState } from "react";
 import { ConfidenceBanner } from "./ConfidenceBanner";
 import { DiagramPanel } from "./DiagramPanel";
 import { PartsTray } from "./PartsTray";
 import { initialPlayback, playbackReducer, SPEEDS } from "./playback";
 import { StepNav } from "./StepNav";
 import { clampStepIndex, hasAnimation, partsForStep, shouldAutoplayTrap, stepMarkers, trapButtonLabel } from "./stepView";
-import type { AssemblySceneProps, SceneManual } from "./tempContracts";
+import type { SceneManual } from "@/schema";
 import { usePlayerKeys } from "./usePlayerKeys";
 import styles from "./StepPlayer.module.css";
 
 // The player never imports three.js directly: the scene is loaded in the browser only (CONTRACTS §7).
-const AssemblyScene = dynamic(() => import("@/scene/AssemblyScene").then((m) => m.AssemblyScene), { ssr: false });
+const Scene = dynamic(() => import("@/scene/AssemblyScene").then((m) => m.AssemblyScene), { ssr: false });
+
+// The scene reports its progress; with no scrubber, nothing here needs it.
+const ignore = () => {};
 
 type Props = {
   manual: SceneManual;
   mode: "library" | "processing";
   back?: ReactNode; // the way out, shown top left: a link to the manuals, or "upload another"
-  Scene?: ComponentType<AssemblySceneProps>; // dev pages pass ScenePlaceholder for data with no geometry
 };
 
-export function StepPlayer({ manual, mode, back, Scene = AssemblyScene }: Props) {
+export function StepPlayer({ manual, mode, back }: Props) {
   const [state, dispatch] = useReducer(playbackReducer, initialPlayback);
   const total = manual.steps.length;
   const first = manual.steps[0];
@@ -137,8 +139,8 @@ export function StepPlayer({ manual, mode, back, Scene = AssemblyScene }: Props)
               speed={state.speed}
               scrubT={null}
               showTrap={showTrap}
-              onProgress={(t) => dispatch({ type: "progress", t })}
-              onDone={() => dispatch({ type: "done" })}
+              onProgress={ignore}
+              onDone={ignore}
             />
             <div className={styles.sceneTools}>
               <div className={styles.speeds} role="group" aria-label="Animation speed">
