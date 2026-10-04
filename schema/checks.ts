@@ -46,8 +46,8 @@ export function checkStep(step: Step, parts: AiPart[], placedPartIds: string[]):
     const part = known.get(action.part);
     if (!part) continue;
     const hardware = HARDWARE_KINDS.includes(part.kind);
-    if (["insert", "screw", "lock"].includes(action.verb) && !hardware) errors.push(`${prefix}: "${action.verb}" needs hardware`);
-    if (["place", "attach"].includes(action.verb) && hardware) errors.push(`${prefix}: "${action.verb}" needs a non-hardware part`);
+    if (["insert", "screw", "lock"].includes(action.verb) && !hardware) errors.push(`${prefix}: "${action.verb}" needs hardware, but "${part.id}" is a ${part.kind}`);
+    if (["place", "attach"].includes(action.verb) && hardware) errors.push(`${prefix}: "${action.verb}" needs a panel or other solid part, but "${part.id}" is hardware`);
     if (hardware && (!action.target || !action.face)) errors.push(`${prefix}: hardware needs a target and a face`);
     if (!hardware && action.count !== 1) errors.push(`${prefix}: non-hardware actions must place one distinct piece`);
     if (action.target === action.part) errors.push(`${prefix}: a part cannot target itself`);

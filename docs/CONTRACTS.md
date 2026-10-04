@@ -200,7 +200,7 @@ export type Step = z.infer<typeof Step>;
 |---|---|
 | `part` / `target` / `for` / `orientationTrap.part` must exist in `parts` | `action 2: target "L3" is not a known part id` |
 | insert / screw / lock only on hardware kinds | `action 1: "insert" needs hardware, but "shelf_1" is a panel` |
-| attach / place only on non-hardware kinds | `action 1: "place" needs a panel, but "dowel" is hardware` |
+| attach / place only on non-hardware kinds | `action 1: "place" needs a panel or other solid part, but "dowel" is hardware` |
 | hardware actions need `target` and `face` | `action 1: hardware needs a target and a face` |
 | In the opening step (`placedPartIds` empty), an unplaced non-hardware `target` of place/attach/insert/screw is introduced implicitly as a foundation. In any later step, an unplaced target is an error. Lock never introduces a target | `action 1: target "L2" has not been placed yet` |
 | `assembly` steps need ≥ 1 action; `info` steps need 0 | `kind "assembly" requires at least one action` |
