@@ -1,7 +1,7 @@
 "use client";
 
-// TEMPORARY stand-in for <AssemblyScene> until AJI-02 lands. It takes the same props (CONTRACTS §7) and
-// reports progress on a timer, so the player's wiring can be built and tested without the 3D scene.
+// Stand-in for <AssemblyScene> on dev pages whose data has no geometry (fake-data/manual.ts). It takes
+// the same props (CONTRACTS §7) and reports progress on a timer. The real player uses the real scene.
 import { useEffect, useRef, useState } from "react";
 import type { AssemblySceneProps } from "./tempContracts";
 import styles from "./StepPlayer.module.css";

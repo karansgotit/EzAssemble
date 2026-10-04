@@ -1,26 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { type ComponentType, useReducer, useRef, useState } from "react";
 import { ConfidenceBanner } from "./ConfidenceBanner";
 import { DiagramPanel } from "./DiagramPanel";
 import { PartsTray } from "./PartsTray";
 import { PlaybackBar } from "./PlaybackBar";
 import { initialPlayback, playbackReducer } from "./playback";
-import { ScenePlaceholder } from "./ScenePlaceholder";
 import { StepNav } from "./StepNav";
 import { clampStepIndex, hasAnimation, partsForStep, shouldAutoplayTrap, trapButtonLabel } from "./stepView";
 import type { AssemblySceneProps, SceneManual } from "./tempContracts";
 import { usePlayerKeys } from "./usePlayerKeys";
 import styles from "./StepPlayer.module.css";
 
+// The player never imports three.js directly: the scene is loaded in the browser only (CONTRACTS §7).
+const AssemblyScene = dynamic(() => import("@/scene/AssemblyScene").then((m) => m.AssemblyScene), { ssr: false });
+
 type Props = {
   manual: SceneManual;
   mode: "library" | "processing";
-  // The real <AssemblyScene> (loaded with next/dynamic, ssr: false) is passed in once AJI-02 lands.
-  Scene?: ComponentType<AssemblySceneProps>;
+  Scene?: ComponentType<AssemblySceneProps>; // dev pages pass ScenePlaceholder for data with no geometry
 };
 
-export function StepPlayer({ manual, mode, Scene = ScenePlaceholder }: Props) {
+export function StepPlayer({ manual, mode, Scene = AssemblyScene }: Props) {
   const [state, dispatch] = useReducer(playbackReducer, initialPlayback);
   const total = manual.steps.length;
   const first = manual.steps[0];

@@ -7,6 +7,7 @@ Hand-written data for building and testing the UI without calling the real API. 
 | File | What |
 |---|---|
 | `manual.ts` | `fakeManual`: a small `SceneManual` with one step of every kind (assembly with a manual trap, assembly with a geometry trap, low confidence, sub-assembly, failed, missing diagram, info) |
+| `savedManual.ts` | `fakeSavedManual`: a tiny `SavedManual` (4 pages, 3 steps) that the mock API (`client/api.mock.ts`) answers from, until the gold KALLAX manual lands |
 | `toggle.ts` | `isFakeDataOn()`: the one switch code checks before calling the real API |
 | `public/fake-data/crops/` | the diagram images `manual.ts` points at (copies of three KALLAX crops from `assets/`) |
 
@@ -18,6 +19,7 @@ Hand-written data for building and testing the UI without calling the real API. 
 
 ## Rules
 
-- Code that can reach the real API asks `isFakeDataOn()` first. Don't add a second switch.
+- Code that can reach the real API gets it from `getApi()` in `client/api.ts`, which returns the mock when `isFakeDataOn()`. Don't add a second switch.
+- Add `?mockFail=2` to a page's URL to make the mock fail that step number.
 - Anything shown from here must look fake (titles say "fake data").
 - When the real piece lands (schema, gold fixtures, routes), switch the consumer over and delete what is no longer used here.
