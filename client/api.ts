@@ -6,10 +6,11 @@ import {
   PageIndex,
   PartsLayout,
   type PartsRequest,
+  SavedManual,
   SaveManualRequest,
   Step,
 } from "@/schema";
-import { fakeSavedManual } from "@/fake-data/savedManual";
+import goldKallax from "@/fixtures/kallax.gold.json";
 import { isFakeDataOn } from "@/fake-data/toggle";
 import { createMockApi } from "./api.mock";
 import { preparePartsRequest } from "./partsRequest";
@@ -164,10 +165,10 @@ export function createApi(deps: ApiDeps = browserDeps): Api {
   };
 }
 
-/** The API the app should use: the mock when fake data is on (NEXT_PUBLIC_MOCK_AI=1 or the dev badge), else the real routes. */
+/** The API the app should use: the mock (gold KALLAX answers) when fake data is on (NEXT_PUBLIC_MOCK_AI=1 or the dev badge), else the real routes. */
 export function getApi(): Api {
   const real = createApi();
   if (!isFakeDataOn()) return real;
   const failStep = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("mockFail");
-  return createMockApi(fakeSavedManual, { failStep: failStep ? Number(failStep) : undefined, saveManual: real.saveManual });
+  return createMockApi(SavedManual.parse(goldKallax), { failStep: failStep ? Number(failStep) : undefined, saveManual: real.saveManual });
 }
