@@ -11,6 +11,7 @@
 | `app/` pages (`page.tsx`, `upload/`, `m/`), `app/layout.tsx`, `app/globals.css` | **Smit** | read only |
 | `player/**`, `client/**`, `app/api/save-manual` | **Smit** | read only |
 | `public/manuals/**` | **Smit** (via Save to library) | Karan may fix data by hand during review |
+| `fake-data/**`, `public/fake-data/**`, `scripts/**` | **Smit** | read and import freely; ask Smit for changes |
 | `package.json`, `next.config.*`, `tsconfig.json`, `vitest.config.*` | **Smit** | ask Smit; never add a dependency without a team OK |
 | `docs/**`, `CLAUDE.md` | whole team | edit via PR, tell the team |
 | `reference/**` | nobody | read only; never import from it (D-17) |
@@ -78,7 +79,7 @@ Use versions compatible with React 19.2 (the reference prototype used R3F 9.4 / 
 | `GOOGLE_CLOUD_PROJECT` | server | Project with the credits |
 | `GOOGLE_CLOUD_LOCATION` | server | e.g. `global` (preview models) or a region |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | server | Service-account key (Vertex AI User role), one line |
-| `NEXT_PUBLIC_MOCK_AI` | browser | `1` → `client/api.mock.ts` uses gold fixtures, no AI calls |
+| `NEXT_PUBLIC_MOCK_AI` | browser | `1` → `getApi()` returns `client/api.mock.ts` (gold KALLAX, no AI calls). In development the "Fake data" badge overrides it per browser, with no restart |
 
 `.env.example` (committed) lists these names with empty values; real values go in `.env.local` and in Vercel's settings.
 
@@ -89,6 +90,7 @@ Use versions compatible with React 19.2 (the reference prototype used R3F 9.4 / 
 | `npm test` | Vitest: schema/fixture validity, checks, snapLayout, resolveScene, tracks, traps, crop math, orchestrator with mock API |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Next.js production build |
+| `npm run check:vertex` | One real Gemini call to confirm the credentials in `.env.local` work; lists the available model ids (a fraction of a cent) |
 | `npm run eval -- kallax` | Runs real AI calls on a manual's crops, scores vs gold, writes `eval/out/kallax.html` (costs money: ~$0.5–1.2 per run) |
 
 **Mock mode** (`NEXT_PUBLIC_MOCK_AI=1`) lets Smit and Ajit build the full UI and 3D without credentials or cost.
