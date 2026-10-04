@@ -11,7 +11,7 @@ import styles from "./home.module.css";
 
 // The three things that happen, in the order they happen. A real sequence, so it is numbered.
 const HOW_IT_WORKS = [
-  { title: "Drop in your manual", text: "The PDF that came with your furniture, or the one from IKEA's website." },
+  { title: "Drop in your manual", text: "The PDF that came with your furniture, or the one from the maker's website." },
   { title: "Wait 2 to 3 minutes", text: "We read every page and work out each step. You watch them appear." },
   { title: "Follow along in 3D", text: "One step at a time: a plain sentence and an animation of which piece goes where." },
 ];
@@ -42,7 +42,7 @@ export default function HomePage() {
 
       <section className={styles.hero}>
         <div className={styles.pitch}>
-          <h1>Turn an IKEA manual into steps you can actually follow.</h1>
+          <h1>Turn a furniture manual into steps you can actually follow.</h1>
           <p>
             Upload the assembly manual. Get every step as one plain sentence and a 3D animation that shows exactly which piece goes where, plus the
             mistake to avoid.

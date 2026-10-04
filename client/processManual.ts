@@ -88,7 +88,7 @@ export async function processManual(
 
   // A3. One entry per step number; sub-assembly runs collapse into one card
   const refs = pickSteps(pages);
-  if (refs.length === 0) stop("No assembly steps were found in this PDF. Is it an IKEA assembly manual?");
+  if (refs.length === 0) stop("No assembly steps were found in this PDF. Is it a furniture assembly manual?");
   const problems: string[] = [];
   if (skippedPages.length) problems.push(`Page${skippedPages.length > 1 ? "s" : ""} ${listNumbers(skippedPages.sort((a, b) => a - b))} couldn't be read.`);
   const missing = missingStepNumbers(refs);
