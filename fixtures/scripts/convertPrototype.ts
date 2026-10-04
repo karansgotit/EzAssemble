@@ -81,7 +81,7 @@ const STEP_STARTS: Record<number, [stepNumber: number, top: number][]> = {
   20: [[15, 309]], 21: [[16, 538]], 22: [[17, 81]], 23: [[18, 83]], 24: [[19, 83]],
 };
 const pageType = (page: number): PageIndex["pageType"] =>
-  page === 1 ? "cover" : page <= 5 ? "warning" : page === 7 ? "parts" : page >= 8 ? "steps" : "other";
+  page === 1 ? "cover" : page <= 5 ? "warning" : page === 6 ? "tools" : page === 7 ? "parts" : page >= 8 ? "steps" : "other";
 
 const pages: PageIndex[] = Array.from({ length: 24 }, (_, i) => {
   const starts = STEP_STARTS[i + 1] ?? [];
