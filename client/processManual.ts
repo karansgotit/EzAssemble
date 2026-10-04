@@ -23,6 +23,7 @@ export type ProcessEvent =
   | { type: "stage"; stage: "rasterize" | "index" | "parts" | "steps" | "done"; detail?: string }
   | { type: "progress"; done: number; total: number }
   | { type: "manual"; manual: SavedManual } // emitted after every finished step (streaming)
+  | { type: "pages"; pages: PageImage[] } // emitted once, when the PDF is read: every page as an image, for the waiting screen
   | { type: "crops"; crops: Crop[] } // emitted once, when the step images are cut; needed to show and save them
   | { type: "error"; message: string };
 
@@ -66,6 +67,7 @@ export async function processManual(
     stop(error instanceof Error ? error.message : "We couldn't read this PDF.");
   }
   checkCancelled();
+  onEvent({ type: "pages", pages: pageImages });
 
   // A2. Every page → its type and step boxes, 4 at a time
   onEvent({ type: "stage", stage: "index" });
@@ -124,7 +126,10 @@ export async function processManual(
   const firstParts = await api.parts(partsRequest, { signal });
   usage.push(...firstParts.usage);
   checkCancelled();
-  if (!firstParts.ok) stop("Couldn't identify the parts in this manual.");
+  if (!firstParts.ok) {
+    console.warn("[processManual] the parts call failed:", firstParts.errors);
+    stop("Couldn't identify the parts in this manual.");
+  }
   let layout: PartsLayout = firstParts.data;
   let snapped = snapLayout(layout, toBuildSize(input.productSizeCm, layout.buildOrientation));
   if (!snapped.ok) {

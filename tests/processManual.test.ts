@@ -48,6 +48,13 @@ describe("processManual on gold KALLAX through the mock API", () => {
     expect(events.filter((e) => e.type === "error")).toEqual([]);
   });
 
+  it("hands over every page image once the PDF is read", async () => {
+    const { events } = await run(createMockApi(gold, instant));
+    const pages = events.flatMap((e) => (e.type === "pages" ? [e.pages] : []));
+    expect(pages).toHaveLength(1);
+    expect(pages[0].map((page) => page.pageNumber)).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+  });
+
   it("hands over one named crop per analysed step", async () => {
     const { events } = await run(createMockApi(gold, instant));
     const crops = events.flatMap((e) => (e.type === "crops" ? e.crops : []));

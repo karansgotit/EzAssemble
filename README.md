@@ -58,7 +58,7 @@ To confirm your Google Cloud credentials work (one small real AI call):
 npm run check:vertex
 ```
 
-In development, the **Fake data** badge in the top-right corner switches between the mock and the real API without a restart.
+In development, the **Fake data** badge at the top centre switches between the mock and the real API without a restart.
 
 IKEA manual PDFs go in `manuals-src/` (git-ignored; shared in team chat).
 

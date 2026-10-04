@@ -490,6 +490,7 @@ export type ProcessEvent =
   | { type: "stage"; stage: "rasterize" | "index" | "parts" | "steps" | "done"; detail?: string }
   | { type: "progress"; done: number; total: number }
   | { type: "manual"; manual: SavedManual }          // emitted after every finished step (streaming)
+  | { type: "pages"; pages: { pageNumber: number; jpegBase64: string; width: number; height: number }[] }   // emitted once, after rasterizing: every page, for the waiting screen
   | { type: "crops"; crops: { name: string; base64: string }[] }   // emitted once, after cropping: "step-NN.jpg" + JPEG, for display and save-manual
   | { type: "error"; message: string };              // fatal: processManual then rejects with a ProcessError carrying the same message
 export type ProcessOptions = { signal?: AbortSignal; rasterize?: typeof rasterize; cropBox?: typeof cropBox };  // cancel; the other two are for tests

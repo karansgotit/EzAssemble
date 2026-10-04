@@ -13,7 +13,7 @@ Hand-written data for building and testing the UI without calling the real API. 
 ## Turning fake data on and off
 
 - **Default for everyone:** `NEXT_PUBLIC_MOCK_AI` in `.env.local` (`1` = fake data, `0` = real API). Changing it needs a dev-server restart.
-- **At will, in development:** click the **Fake data** badge in the top-right corner of any page. It flips the switch for your browser only and reloads the page; no restart, and it works whether or not the API credentials are set. Click **reset** next to it to go back to the `.env.local` default.
+- **At will, in development:** click the **Fake data** badge at the top centre of any page. It flips the switch for your browser only and reloads the page; no restart, and it works whether or not the API credentials are set. Click **reset** next to it to go back to the `.env.local` default.
 - **Production builds** ignore the badge and only read the env var.
 
 ## While the AI routes are still being built

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 export type PlayerKeyHandlers = {
   onPrev: () => void;
   onNext: () => void;
-  onToggle?: () => void; // omit on steps with no animation
+  onToggle?: () => void; // Space; omit on steps with no animation
   onReplay?: () => void;
 };
 
@@ -13,7 +13,7 @@ function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || target.closest("input, select, textarea") !== null);
 }
 
-/** Keyboard shortcuts for the player: ← → change step, Space plays/pauses, R replays. */
+/** Keyboard shortcuts for the player: ← → change step, Space or R replays the animation. */
 export function usePlayerKeys(handlers: PlayerKeyHandlers): void {
   const latest = useRef(handlers);
   useEffect(() => {

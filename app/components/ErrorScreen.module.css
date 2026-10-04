@@ -1,28 +1,56 @@
+/* The same numeral-and-sentence shape as a step, with ✗ where the number would be. */
 .screen {
-  max-width: 48rem;
-  margin: 3rem auto;
-  padding: 1.5rem;
-  border: 2px solid #b00020;
-  border-radius: 0.5rem;
-  background: #fff0f1;
-  color: #5c0011;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-6);
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5);
 }
 
-.screen h1 {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
+.mark {
+  font-family: var(--font-display);
+  font-size: var(--text-numeral);
+  font-weight: 900;
+  line-height: 0.8;
+  color: var(--color-wrong);
 }
 
-.screen ul {
-  margin: 0 0 1.5rem;
-  padding-left: 1.25rem;
+.say {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: 52rem;
 }
 
-.screen li {
+.say h1 {
+  margin: 0;
+  font-size: var(--text-instruction);
+  font-weight: var(--weight-medium);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+
+.say ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+}
+
+.say li {
   overflow-wrap: anywhere;
 }
 
-.screen a {
-  color: #5c0011;
-  font-weight: 600;
+@media (max-width: 34rem) {
+  .screen {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+  }
 }

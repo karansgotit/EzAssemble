@@ -1,14 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type ComponentType, useReducer, useRef, useState } from "react";
+import { type ComponentType, type ReactNode, useReducer, useRef, useState } from "react";
 import { ConfidenceBanner } from "./ConfidenceBanner";
 import { DiagramPanel } from "./DiagramPanel";
 import { PartsTray } from "./PartsTray";
-import { PlaybackBar } from "./PlaybackBar";
-import { initialPlayback, playbackReducer } from "./playback";
+import { initialPlayback, playbackReducer, SPEEDS } from "./playback";
 import { StepNav } from "./StepNav";
-import { clampStepIndex, hasAnimation, partsForStep, shouldAutoplayTrap, trapButtonLabel } from "./stepView";
+import { clampStepIndex, hasAnimation, partsForStep, shouldAutoplayTrap, stepMarkers, trapButtonLabel } from "./stepView";
 import type { AssemblySceneProps, SceneManual } from "./tempContracts";
 import { usePlayerKeys } from "./usePlayerKeys";
 import styles from "./StepPlayer.module.css";
@@ -19,24 +18,27 @@ const AssemblyScene = dynamic(() => import("@/scene/AssemblyScene").then((m) => 
 type Props = {
   manual: SceneManual;
   mode: "library" | "processing";
+  back?: ReactNode; // the way out, shown top left: a link to the manuals, or "upload another"
   Scene?: ComponentType<AssemblySceneProps>; // dev pages pass ScenePlaceholder for data with no geometry
 };
 
-export function StepPlayer({ manual, mode, Scene = AssemblyScene }: Props) {
+export function StepPlayer({ manual, mode, back, Scene = AssemblyScene }: Props) {
   const [state, dispatch] = useReducer(playbackReducer, initialPlayback);
   const total = manual.steps.length;
   const first = manual.steps[0];
   const seenTraps = useRef(new Set<number>(first ? [first.stepNumber] : []));
   const [showTrap, setShowTrap] = useState(() => first !== undefined && shouldAutoplayTrap(first, new Set()));
   const [sceneKey, setSceneKey] = useState(0);
+  const [finished, setFinished] = useState(false);
 
   const index = clampStepIndex(state.stepIndex, total);
   const step = manual.steps[index];
-  const animated = step !== undefined && hasAnimation(step);
+  const animated = step !== undefined && hasAnimation(step) && !finished;
 
   function open(target: number) {
     const next = clampStepIndex(target, total);
     const nextStep = manual.steps[next];
+    setFinished(false);
     if (next === index || !nextStep) return;
     setShowTrap(shouldAutoplayTrap(nextStep, seenTraps.current));
     seenTraps.current.add(nextStep.stepNumber);
@@ -46,10 +48,6 @@ export function StepPlayer({ manual, mode, Scene = AssemblyScene }: Props) {
     setShowTrap(withTrap);
     dispatch({ type: "replay" });
   }
-  function toggle() {
-    if (state.progress >= 1) setShowTrap(false); // pressing play on a finished step replays it without the ghost
-    dispatch({ type: "toggle" });
-  }
   function resetView() {
     // The scene contract has no "reset camera" prop, so remount it; that also restarts the step.
     setSceneKey((key) => key + 1);
@@ -57,14 +55,59 @@ export function StepPlayer({ manual, mode, Scene = AssemblyScene }: Props) {
   }
 
   usePlayerKeys({
-    onPrev: () => open(index - 1),
+    onPrev: () => open(finished ? index : index - 1),
     onNext: () => open(index + 1),
-    onToggle: animated ? toggle : undefined,
+    onToggle: animated ? () => replay() : undefined, // Space replays: the animation has no pause
     onReplay: animated ? () => replay() : undefined,
   });
 
+  const top = (
+    <header className={styles.top}>
+      <div className={styles.crumb}>
+        {back}
+        <span className={styles.title}>{manual.title}</span>
+      </div>
+      {step && !finished && (
+        <p className={styles.position}>
+          Step <b>{index + 1}</b> of {total}
+          {mode === "processing" && " · more steps are still being read"}
+        </p>
+      )}
+    </header>
+  );
+
   if (!step) {
-    return <p className={styles.empty}>{mode === "processing" ? "Reading the manual…" : "This manual has no steps."}</p>;
+    return (
+      <div className={styles.player}>
+        {top}
+        <p className={styles.empty}>{mode === "processing" ? "Reading the manual…" : "This manual has no steps."}</p>
+      </div>
+    );
+  }
+
+  if (finished) {
+    return (
+      <div className={styles.player}>
+        {top}
+        <section className={styles.finished}>
+          <span className={styles.numeral} aria-hidden="true">
+            ✓
+          </span>
+          <div className={styles.say}>
+            <h1 className={styles.sentence}>Built.</h1>
+            <p className={styles.finishedLine}>
+              All {total} {total === 1 ? "step" : "steps"} done.
+            </p>
+            <div className={styles.finishedActions}>
+              <button type="button" className="btn btn-lg" onClick={() => open(0)}>
+                Go through the steps again
+              </button>
+              {back}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   const trapLabel = animated ? trapButtonLabel(step.trap) : null;
@@ -72,79 +115,84 @@ export function StepPlayer({ manual, mode, Scene = AssemblyScene }: Props) {
 
   return (
     <div className={styles.player}>
-      <header className={styles.header}>
-        <h1>{manual.title}</h1>
-        <p>
-          Step {index + 1} of {total}
-          {mode === "processing" && " · more steps are still being read"}
-        </p>
-      </header>
+      {top}
 
+      {/* The animation is what the eye lands on. The printed drawing sits beside it, smaller, for comparison. */}
       {step.kind === "assembly" && (
-        <div className={styles.workspace}>
-          <aside className={styles.reference}>
-            <DiagramPanel key={step.crop} src={step.crop} stepNumber={step.stepNumber} />
-            <PartsTray items={partsForStep(manual.parts, step)} />
-          </aside>
+        <div className={styles.stage}>
           <section className={styles.scene} aria-label="3D view of this step">
             <Scene
               key={sceneKey}
               manual={manual}
               stepIndex={index}
               playKey={state.playKey}
-              playing={state.playing}
+              playing
               speed={state.speed}
-              scrubT={state.scrubT}
+              scrubT={null}
               showTrap={showTrap}
               onProgress={(t) => dispatch({ type: "progress", t })}
               onDone={() => dispatch({ type: "done" })}
             />
-            <button type="button" className={styles.resetView} onClick={resetView}>
-              Reset view
-            </button>
+            <div className={styles.sceneTools}>
+              <div className={styles.speeds} role="group" aria-label="Animation speed">
+                {SPEEDS.map((option) => (
+                  <button type="button" key={option} aria-pressed={option === state.speed} onClick={() => dispatch({ type: "speed", speed: option })}>
+                    {option}×
+                  </button>
+                ))}
+              </div>
+              <button type="button" className={styles.tool} onClick={resetView}>
+                Reset view
+              </button>
+            </div>
           </section>
+          <aside className={styles.reference}>
+            <DiagramPanel key={step.crop} src={step.crop} stepNumber={step.stepNumber} />
+            <PartsTray items={partsForStep(manual.parts, step)} />
+          </aside>
         </div>
       )}
       {(step.kind === "info" || step.kind === "failed") && (
-        <DiagramPanel key={step.crop} src={step.crop} stepNumber={step.stepNumber} large />
-      )}
-      {step.kind === "subassembly" && (
-        <section className={styles.card}>
-          <h2>Assembled separately</h2>
-          <p>{step.instruction}</p>
-          <button type="button" className={styles.primary} disabled={isLast} onClick={() => open(index + 1)}>
-            Continue
-          </button>
-        </section>
+        <div className={styles.sheetOnly}>
+          <DiagramPanel key={step.crop} src={step.crop} stepNumber={step.stepNumber} large />
+        </div>
       )}
 
-      <section className={styles.instruction}>
-        {step.kind !== "subassembly" && (
-          <>
-            {step.kind !== "failed" && <ConfidenceBanner confidence={step.confidence} />}
-            <div className={styles.instructionRow}>
-              <p className={step.kind === "failed" ? styles.failed : undefined}>{step.instruction}</p>
-              {trapLabel && (
-                <button type="button" className={styles.trapButton} onClick={() => replay(true)}>
-                  ⚠ {trapLabel}
-                </button>
-              )}
-            </div>
-          </>
-        )}
-        {animated && (
-          <PlaybackBar
-            playing={state.playing}
-            progress={state.progress}
-            speed={state.speed}
-            onToggle={toggle}
-            onReplay={() => replay()}
-            onSpeed={(speed) => dispatch({ type: "speed", speed })}
-            onScrub={(t) => dispatch({ type: "scrub", t })}
-          />
-        )}
-        <StepNav index={index} labels={manual.steps.map((s) => String(s.stepNumber))} onChange={open} />
+      {/* The manual's own step number, and the sentence the manual never had. */}
+      <section className={styles.announce} key={index} aria-live="polite" data-alone={step.kind === "subassembly"}>
+        <span className={styles.numeral} aria-hidden="true">
+          {step.stepNumber}
+        </span>
+        <div className={styles.say}>
+          <h1 className={styles.sentence}>{step.instruction}</h1>
+          {step.kind === "assembly" && <ConfidenceBanner confidence={step.confidence} />}
+        </div>
+        <div className={styles.actions}>
+          {trapLabel && (
+            <button type="button" className={styles.mistake} onClick={() => replay(true)}>
+              <span aria-hidden="true">✗</span> {trapLabel}
+            </button>
+          )}
+          {animated && (
+            <button type="button" className="btn btn-lg" onClick={() => replay()}>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <path d="M3 4v5h5" />
+              </svg>
+              Replay
+            </button>
+          )}
+          {step.kind === "subassembly" && (
+            <button type="button" className="btn btn-primary btn-lg" disabled={isLast} onClick={() => open(index + 1)}>
+              Continue
+            </button>
+          )}
+        </div>
       </section>
+
+      <footer className={styles.controls}>
+        <StepNav index={index} markers={stepMarkers(manual.steps)} onChange={open} onFinish={mode === "library" ? () => setFinished(true) : undefined} />
+      </footer>
     </div>
   );
 }
