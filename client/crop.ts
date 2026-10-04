@@ -48,11 +48,17 @@ export function fitLongSide(width: number, height: number, maxLongSide?: number)
   return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
 }
 
-async function decodeJpeg(jpegBase64: string): Promise<HTMLImageElement> {
-  const image = new Image();
-  image.src = jpegDataUrl(jpegBase64);
-  await image.decode();
-  return image;
+// Steps on one page are cropped one after another (and twice each: full size and thumbnail),
+// so the last decoded page is kept instead of decoding it again for every crop.
+let lastDecoded: { jpegBase64: string; image: Promise<HTMLImageElement> } | null = null;
+
+function decodeJpeg(jpegBase64: string): Promise<HTMLImageElement> {
+  if (lastDecoded?.jpegBase64 !== jpegBase64) {
+    const image = new Image();
+    image.src = jpegDataUrl(jpegBase64);
+    lastDecoded = { jpegBase64, image: image.decode().then(() => image) };
+  }
+  return lastDecoded.image;
 }
 
 /** Cuts a step out of its page image. Returns base64 JPEG without the "data:" prefix. */
