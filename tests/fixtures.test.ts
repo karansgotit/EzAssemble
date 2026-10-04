@@ -9,6 +9,8 @@ import { layout, saved, scene, steps } from "./helpers/schemaFixtures";
 const root = new URL("../", import.meta.url);
 const json = (path: string): unknown => JSON.parse(readFileSync(new URL(path, root), "utf8"));
 const numbers = Array.from({ length: 19 }, (_, i) => i + 1);
+// Steps fixed against the drawings in fixtures/scripts/convertPrototype.ts (CORRECTIONS).
+const CORRECTED = [1, 12, 14];
 const cropName = (n: number) => `step-${String(n).padStart(2, "0")}.jpg`;
 const prototype = json("reference/prototype/src/fixtures/kallax.json") as {
   parts: SceneManual["parts"];
@@ -39,6 +41,7 @@ describe("KAR-02 generated KALLAX fixtures", () => {
       const stored = steps[original.stepNumber - 1];
       for (const step of [converted, stored]) {
         expect(step.kind).toBe(original.kind);
+        if (CORRECTED.includes(original.stepNumber)) continue; // checked in the next test
         expect(step.instruction).toBe(original.instruction);
         expect(step.confidence).toBe(original.confidence);
         expect(step.actions).toEqual(original.actions);
@@ -55,6 +58,15 @@ describe("KAR-02 generated KALLAX fixtures", () => {
     }
     expect(scene.steps.slice(0, 15).every(step => step.kind === "assembly")).toBe(true);
     expect(scene.steps.slice(15).every(step => step.kind === "info" && step.actions.length === 0)).toBe(true);
+  });
+
+  it("applies the drawing-checked corrections: E2 arrives in step 14 on dowels from D4", () => {
+    for (const step of [scene.steps, steps].map(list => list[0])) expect(step.actions.map(a => a.part)).not.toContain("E2");
+    for (const list of [scene.steps, steps]) {
+      expect(list[11].actions.at(-1)).toEqual({ verb: "insert", part: "dowel", count: 2, target: "D4", face: "right", for: "E2" });
+      expect(list[13].actions[0]).toEqual({ verb: "place", part: "E2", count: 1, target: "D4", face: "right" });
+      expect(list[13].actions.filter(a => a.part === "screw").reduce((n, a) => n + a.count, 0)).toBe(6);
+    }
   });
 
   it("stores build-frame fractions that snap back to the exact scene geometry", () => {

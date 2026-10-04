@@ -65,7 +65,7 @@ describe("a deliberately corrupted copy of gold KALLAX", () => {
 
   it("still animates the valid actions in the same steps", () => {
     const { moved } = playAll(manual);
-    expect(moved[0]).toEqual(["E1#1", "E2#1"]); // step 1: the screws are skipped, both end panels still move
+    expect(moved[0]).toEqual(["E1#1"]); // step 1: the screws are skipped, the end panel still moves
     expect(moved[1]).toEqual(["D1#1"]); // step 2: the dowels are skipped, the divider still slides on
     expect(moved[2]).toEqual(["S1#1"]);
     expect(moved[5]).toEqual(["S2#1"]);

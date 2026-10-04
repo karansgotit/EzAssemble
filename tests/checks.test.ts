@@ -17,7 +17,7 @@ describe("KALLAX foundations across validation and rendering", () => {
     expect(checkCumulativeCounts(steps, layout.parts)).toEqual([]);
   });
   it("introduces E1 and L1 in step 1 and does not duplicate an explicitly attached foundation", () => {
-    expect(placedPartsAfterStep(steps[0], layout.parts)).toEqual(["E1", "L1", "E2"]);
+    expect(placedPartsAfterStep(steps[0], layout.parts)).toEqual(["E1", "L1"]);
     const state = resolveScene(scene, 0);
     expect([...state.placed.values()].filter(p => p.partId === "E1")).toHaveLength(1);
     expect(state.warnings).toEqual([]);
@@ -77,7 +77,7 @@ describe("step semantics", () => {
   });
   it("only introduces foundations in the opening step, so a mixed-up panel is caught later", () => {
     // Step 7 with L2 (placed at step 13) mistaken for L1: must fail so Gemini retries.
-    const placedBeforeStep7 = ["E1", "L1", "E2", "D1", "S1", "D2", "S2"];
+    const placedBeforeStep7 = ["E1", "L1", "D1", "S1", "D2", "S2"];
     const mixedUp: Step = { ...steps[6], orientationTrap: undefined, actions: [
       { verb: "insert", part: "dowel", count: 2, target: "L2", face: "front", for: "S3" },
       { verb: "place", part: "S3", count: 1, target: "L2", face: "front" },
