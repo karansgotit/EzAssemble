@@ -16,9 +16,11 @@ export function SceneDevClient({ manual }: { manual: SceneManual }) {
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const [scrubT, setScrubT] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
+  const [showTrap, setShowTrap] = useState(true);
   const step = manual.steps[stepIndex];
 
-  const restart = (index: number) => {
+  const restart = (index: number, trap = true) => {
+    setShowTrap(trap);
     setStepIndex(Math.max(0, Math.min(manual.steps.length - 1, index)));
     setPlayKey((k) => k + 1);
     setScrubT(null);
@@ -36,7 +38,7 @@ export function SceneDevClient({ manual }: { manual: SceneManual }) {
           playing={playing}
           speed={speed}
           scrubT={scrubT}
-          showTrap={false}
+          showTrap={showTrap}
           onProgress={setProgress}
           onDone={() => setPlaying(false)}
         />
@@ -55,7 +57,8 @@ export function SceneDevClient({ manual }: { manual: SceneManual }) {
           <button onClick={() => restart(stepIndex + 1)} disabled={stepIndex === manual.steps.length - 1}>
             Next
           </button>
-          <button onClick={() => restart(stepIndex)}>Replay</button>
+          <button onClick={() => restart(stepIndex, false)}>Replay</button>
+          {step.trap && <button onClick={() => restart(stepIndex)}>Show mistake ({step.trap.source})</button>}
           <button
             onClick={() => {
               setScrubT(null);

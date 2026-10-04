@@ -5,7 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { Vector3 } from "three";
 import { CameraRig } from "./CameraRig";
-import { COLORS } from "./constants";
+import { COLORS, TRAP_SECONDS } from "./constants";
 import { Ghost } from "./Ghost";
 import {
   NO_ROTATION, add, boundsOf, cornersOf, rotate, sameRotation, uprightRotation, type Bounds, type Cuboid,
@@ -14,7 +14,7 @@ import { MotionGuide } from "./MotionGuide";
 import { PartMesh } from "./PartMesh";
 import { ASSEMBLY_ID, assemblyBounds, resolveScene, type AssemblyPose } from "./resolveScene";
 import { buildTracks, sample, type Pose } from "./tracks";
-import type { SceneManual } from "./types";
+import type { Feature, SceneManual } from "./types";
 
 // docs/CONTRACTS.md §7. The player loads this with next/dynamic and ssr: false.
 export interface AssemblySceneProps {
@@ -51,6 +51,13 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
     for (const warning of after.warnings) console.warn(`[scene] ${warning}`);
   }, [after]);
 
+  const step = manual.steps[stepIndex];
+  const trapPiece = step?.trap ? [...after.placed.values()].find((p) => p.partId === step.trap?.part && p.shape === "box") : undefined;
+  // The ghost plays first; the step's own motion starts when it has faded.
+  const trapSeconds = showTrap && trapPiece ? TRAP_SECONDS : 0;
+  const duration = trapSeconds + totalDuration;
+  const features = useMemo(() => new Map<string, Feature[]>(manual.parts.map((p) => [p.id, p.features ?? []])), [manual]);
+
   const clock = useRef(0);
   const finished = useRef(false);
   const reported = useRef(-1);
@@ -58,16 +65,16 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
 
   useFrame((_, delta) => {
     if (scrubT !== null) {
-      clock.current = Math.max(0, Math.min(1, scrubT)) * totalDuration;
+      clock.current = Math.max(0, Math.min(1, scrubT)) * duration;
       finished.current = false;
     } else if (playing) {
-      clock.current = Math.min(totalDuration, clock.current + Math.min(delta, MAX_FRAME_SECONDS) * speed);
+      clock.current = Math.min(duration, clock.current + Math.min(delta, MAX_FRAME_SECONDS) * speed);
     }
     setTime(clock.current);
-    const atEnd = clock.current >= totalDuration;
+    const atEnd = clock.current >= duration;
     if (Math.abs(clock.current - reported.current) > REPORT_EVERY_SECONDS || (atEnd && reported.current !== clock.current)) {
       reported.current = clock.current;
-      onProgress(clock.current / totalDuration);
+      onProgress(clock.current / duration);
     }
     if (atEnd && scrubT === null && !finished.current) {
       finished.current = true;
@@ -75,17 +82,17 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
     }
   });
 
-  const poses = sample(tracks, time);
+  const inTrap = time < trapSeconds;
+  const motionTime = Math.max(0, time - trapSeconds);
+  const poses = sample(tracks, motionTime);
   const flipping = tracks.some((t) => t.id === ASSEMBLY_ID);
   const assembly: AssemblyPose = poses.get(ASSEMBLY_ID) ?? after.assembly;
-  const flipDone = !flipping || time >= totalDuration;
+  const flipDone = !flipping || motionTime >= totalDuration;
   // What is on screen once any flip has finished, and whether that is the furniture upright.
   const shown = flipDone ? after.assembly : before.assembly;
   const standing = sameRotation(shown.quaternion, uprightRotation(manual.buildOrientation));
   const resting = sameRotation(before.assembly.quaternion, NO_ROTATION) && sameRotation(after.assembly.quaternion, NO_ROTATION);
   const current = new Set(flipping ? after.placed.keys() : tracks.map((t) => t.id));
-  const step = manual.steps[stepIndex];
-  const trapPiece = step?.trap ? [...after.placed.values()].find((p) => p.partId === step.trap?.part) : undefined;
 
   // What the camera should hold in view: this step's pieces (where they start and where they
   // land) and what they attach to; the whole build on the first step and on a flip.
@@ -118,18 +125,20 @@ function World({ manual, stepIndex, playKey, playing, speed, scrubT, showTrap, o
       <directionalLight position={[-80, 180, 100]} intensity={2.5} />
 
       <group position={assembly.position} quaternion={assembly.quaternion}>
-        {[...after.placed.values()].map((piece) => (
-          <PartMesh
-            key={piece.id}
-            piece={piece}
-            pose={poses.get(piece.id) ?? { ...still, position: piece.position, quaternion: piece.quaternion, spin: piece.spin }}
-            current={current.has(piece.id)}
-          />
-        ))}
-        {tracks.map((track) => (
-          <MotionGuide key={`${track.id}-${track.start}`} track={track} time={time} />
-        ))}
-        {showTrap && step?.trap && trapPiece && <Ghost piece={trapPiece} trap={step.trap} time={time} />}
+        {[...after.placed.values()].map((piece) =>
+          // While the ghost stands in for the part, the part itself stays out of the way.
+          inTrap && piece.id === trapPiece?.id ? null : (
+            <PartMesh
+              key={piece.id}
+              piece={piece}
+              pose={poses.get(piece.id) ?? { ...still, position: piece.position, quaternion: piece.quaternion, spin: piece.spin }}
+              current={current.has(piece.id)}
+              features={features.get(piece.partId)}
+            />
+          ),
+        )}
+        {!inTrap && tracks.map((track) => <MotionGuide key={`${track.id}-${track.start}`} track={track} time={motionTime} />)}
+        {inTrap && step?.trap && trapPiece && <Ghost piece={trapPiece} trap={step.trap} time={time} />}
       </group>
 
       {resting && (

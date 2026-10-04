@@ -119,10 +119,17 @@ export function slerp(a: Quat, b: Quat, t: number): Quat {
   return toQuat(fromQuat(a).slerp(fromQuat(b), t));
 }
 
-// Cylinders are modelled along +y; this turns that axis onto a face normal.
-export function alongNormal(normal: Vec3): Quat {
-  return toQuat(new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), new Vector3(...normal)));
+// The shortest turn that carries one unit direction onto another.
+export function turnOnto(from: Vec3, to: Vec3): Quat {
+  return toQuat(new Quaternion().setFromUnitVectors(new Vector3(...from), new Vector3(...to)));
 }
+
+export function aboutAxis(axis: Vec3, radians: number): Quat {
+  return toQuat(new Quaternion().setFromAxisAngle(new Vector3(...axis), radians));
+}
+
+// Cylinders are modelled along +y; this turns that axis onto a face normal.
+export const alongNormal = (normal: Vec3): Quat => turnOnto([0, 1, 0], normal);
 
 const HALF_TURN_ABOUT_X = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
 

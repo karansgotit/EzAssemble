@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { deriveTraps } from "@/scene/traps";
 import type { SceneManual } from "@/scene/types";
 import { SceneDevClient } from "./SceneDevClient";
 
@@ -13,7 +14,8 @@ async function loadFixture(name: string): Promise<SceneManual | string> {
     const file = path.join(process.cwd(), "fixtures", `${name}.scene.json`);
     const manual = JSON.parse(await readFile(file, "utf8")) as Partial<SceneManual>;
     if (!Array.isArray(manual.parts) || !Array.isArray(manual.steps)) return `fixtures/${name}.scene.json is not a scene manual.`;
-    return manual as SceneManual;
+    // The fixture holds only the manual's own warnings; add the ones the geometry proves.
+    return { ...(manual as SceneManual), steps: deriveTraps(manual.parts, manual.steps) };
   } catch {
     return `fixtures/${name}.scene.json was not found or is not valid JSON.`;
   }
