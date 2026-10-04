@@ -61,3 +61,32 @@ npm run check:vertex
 In development, the **Fake data** badge in the top-right corner switches between the mock and the real API without a restart.
 
 IKEA manual PDFs go in `manuals-src/` (git-ignored; shared in team chat).
+
+## Deploying to Vercel
+
+1. In Vercel, import the GitHub repository. The defaults are right: framework Next.js, root directory the repo root.
+2. Under **Settings → Environment Variables**, add the same three values as in `.env.local`:
+   - `GOOGLE_CLOUD_PROJECT`
+   - `GOOGLE_CLOUD_LOCATION` (`global`)
+   - `GOOGLE_SERVICE_ACCOUNT_JSON`: the key as one line, pasted as is, with no quotes around it
+3. Deploy, then open `/api/health` on the deployed site. `{"ok":true,...}` means the server can read the credentials; anything else names the setting to fix. It makes no AI call and shows no values.
+4. Check the plan's function time limit against the routes' `maxDuration = 60`.
+
+On the deployed site the `/dev/*` pages and `/api/save-manual` answer "not found" by design, and the Fake data badge is not shown. To run the deployed site without AI calls, set `NEXT_PUBLIC_MOCK_AI=1` there and redeploy.
+
+## Running the demo with no internet (backup plan)
+
+Everything on the demo path (library → KALLAX → every step) is served from files in this repo, so it works with Wi-Fi off. Do steps 1 and 2 while you still have a connection.
+
+1. ```bash
+   npm install
+   ```
+2. ```bash
+   npm run build
+   ```
+3. ```bash
+   npm start
+   ```
+4. Open http://localhost:3000.
+
+What does not work offline: uploading a manual and "Re-analyze live", since both call Gemini. With `NEXT_PUBLIC_MOCK_AI=1` in `.env.local` before step 2, uploads run on saved KALLAX answers instead.

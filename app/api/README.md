@@ -6,3 +6,5 @@ Thin routes: validate the request with Zod, then call `pipeline/`, then return `
 Every route: `export const runtime = "nodejs"; export const maxDuration = 60;`
 
 `save-manual/` is dev-only: `route.ts` answers 404 unless `NODE_ENV` is `development`, and `saveToLibrary.ts` does the file writing into `public/manuals/`.
+
+`health/` (Smit) is the deploy check: `GET /api/health` says whether the Google Cloud settings on that server are usable. It makes no AI call and returns no values.
