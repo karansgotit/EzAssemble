@@ -424,6 +424,7 @@ export type AskRequest = z.infer<typeof AskRequest>;
 | `POST /api/parts` | `{ title: string, productSizeCm: Vec3, partsPages: string[], cover: string, stepThumbs: string[], previousErrors?: string[] }` | `ApiResult<PartsLayout>` | strong |
 | `POST /api/analyze-step` | `{ image: string, stepNumber: number, parts: AiPart[], placedPartIds: string[], previousInstructions: string[] }` | `ApiResult<Step>` | strong |
 | `POST /api/save-manual` _(dev only)_ | `{ manual: SavedManual, crops: { name: string, base64: string }[] }` | `{ ok: true, path: string }` or `{ ok: false, error: string }` | — |
+| `GET /api/health` | — | `{ ok: true, project: boolean, location: string, credentials: boolean, mockAi: boolean }`, or `503` with `{ ok: false, …, problem: string }` | — (no AI call; reports only whether the Google Cloud settings are usable) |
 | `POST /api/ask` _(stretch)_ | `{ question: string, step: Step, image: string }` | `ApiResult<{ answer: string }>` | fast |
 
 **Request schemas** live in `schema/api.ts` as Zod objects with the same names plus `Request`: `IndexPageRequest`, `PartsRequest`, `AnalyzeStepRequest`, `SaveManualRequest`, `AskRequest`. Each exports a matching inferred data type. Routes validate them first; the browser validates the exact request before sending.
