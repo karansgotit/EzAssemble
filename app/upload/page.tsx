@@ -9,6 +9,7 @@ import { StepPlayer } from "@/player/StepPlayer";
 import { buildSceneManual } from "@/scene/buildSceneManual";
 import type { SavedManual, SceneManual } from "@/schema";
 import { ProgressView } from "./ProgressView";
+import { SaveToLibrary } from "./SaveToLibrary";
 import { UploadForm } from "./UploadForm";
 import styles from "./upload.module.css";
 
@@ -93,9 +94,12 @@ export default function UploadPage() {
   if (run && scene) {
     return (
       <>
-        <button type="button" className={styles.back} onClick={startOver}>
-          ← Upload another manual
-        </button>
+        <div className={styles.playerBar}>
+          <button type="button" onClick={startOver}>
+            ← Upload another manual
+          </button>
+          {!run.running && run.manual && <SaveToLibrary manual={run.manual} crops={crops} />}
+        </div>
         <StepPlayer manual={scene} mode="library" />
       </>
     );

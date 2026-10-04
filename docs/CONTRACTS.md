@@ -434,6 +434,7 @@ export type AskRequest = z.infer<typeof AskRequest>;
 - `503` when Vertex AI is unreachable or credentials are missing.
 - `500` for anything unexpected.
 - `save-manual` returns `404` unless `NODE_ENV === "development"`.
+- `save-manual` accepts crop names of the form `step-NN.jpg` only, each a JPEG, and requires one for every step that shows a diagram; otherwise it returns `400` with `{ ok: false, error }` and writes nothing. It adds or replaces the manual's entry in `index.json` and keeps the other entries.
 
 **Route settings:** `export const runtime = "nodejs"; export const maxDuration = 60;`
 
