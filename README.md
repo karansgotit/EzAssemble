@@ -8,7 +8,7 @@ Built at **StormHacks 2026** by Ajitsingh Chauhan, Smit Sanghvi and Karan Passi.
 
 ## Status
 
-🚧 **In progress.** Working today: the manual library, the step player with the 3D scene on KALLAX, PDF rasterizing and cropping, the API client with a mock, and the upload page with live progress (so far run only against the mock). Not built yet: the AI routes, re-analyze, save to library. Tasks are in [`docs/tasks/`](docs/tasks/README.md).
+🚧 **In progress.** Working today: the manual library, the step player with the 3D scene on KALLAX, PDF rasterizing and cropping, the API client with a mock, and the upload page with live progress (so far run only against the mock). Any saved manual opens from the library, and in development an uploaded manual can be saved into it. Not built yet: the AI routes and re-analyze. Tasks are in [`docs/tasks/`](docs/tasks/README.md).
 
 ## Start here
 

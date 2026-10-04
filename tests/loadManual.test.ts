@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { loadLibrary, loadManual, manualBaseUrl } from "@/client/loadManual";
-import { sceneManualFor } from "@/client/sceneManualFor";
 
 // fileURLToPath, not .pathname: that one breaks on Windows drives and on folders with spaces.
 const publicDir = fileURLToPath(new URL("../public", import.meta.url));
@@ -91,24 +90,5 @@ describe("loadManual", () => {
 describe("manualBaseUrl", () => {
   it("is the folder the crops are relative to", () => {
     expect(manualBaseUrl("kallax")).toBe("/manuals/kallax/");
-  });
-});
-
-describe("sceneManualFor (temporary until AJI-03)", () => {
-  it("gives the KALLAX scene for the KALLAX manual", async () => {
-    const saved = await loadManual("kallax", staticFiles);
-    if (!saved.ok) throw new Error("fixture missing");
-    const scene = sceneManualFor(saved.data);
-    expect(scene.ok).toBe(true);
-    if (scene.ok) expect(scene.manual.steps).toHaveLength(saved.data.steps.length);
-  });
-
-  it("explains that other manuals can't be opened yet", async () => {
-    const saved = await loadManual("kallax", staticFiles);
-    if (!saved.ok) throw new Error("fixture missing");
-    expect(sceneManualFor({ ...saved.data, id: "lack", title: "LACK side table" })).toEqual({
-      ok: false,
-      errors: ['The 3D scene for "LACK side table" can\'t be built yet. Only KALLAX can be opened for now.'],
-    });
   });
 });
