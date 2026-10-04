@@ -8,7 +8,7 @@ Built at **StormHacks 2026** by Ajitsingh Chauhan, Smit Sanghvi and Karan Passi.
 
 ## Status
 
-🚧 **Scaffolding only.** No app code yet. The code is written fresh during the hackathon by following the tasks in [`docs/tasks/`](docs/tasks/README.md).
+🚧 **In progress.** Working today: the manual library, the step player with the 3D scene on KALLAX, PDF rasterizing and cropping, the API client with a mock, and the upload orchestrator (tested against the mock). Not built yet: the AI routes, the upload page, re-analyze, save to library. Tasks are in [`docs/tasks/`](docs/tasks/README.md).
 
 ## Start here
 
@@ -28,12 +28,14 @@ Built at **StormHacks 2026** by Ajitsingh Chauhan, Smit Sanghvi and Karan Passi.
 | `player/` | Step player UI | Smit |
 | `fixtures/` | Gold (hand-checked) manuals for tests and eval | Karan |
 | `public/manuals/` | Saved, pre-processed manuals for the demo | Smit |
+| `fake-data/` | Stand-in data and the fake-data on/off switch for development | Smit |
+| `scripts/` | One-off checks (`check-vertex.ts`) | Smit |
 | `tests/` | Vitest tests | each owner |
 | `assets/` | Source images (KALLAX step crops) | Karan |
 | `reference/prototype/` | Visual prototype, **reference only, never import** | — |
 | `docs/` | PRD, contracts, architecture, decisions, conventions, tasks | team |
 
-## Getting started (after SMI-01 lands)
+## Getting started
 
 ```bash
 npm install
@@ -49,5 +51,13 @@ npm run dev
 ```bash
 npm run typecheck && npm test && npm run build
 ```
+
+To confirm your Google Cloud credentials work (one small real AI call):
+
+```bash
+npm run check:vertex
+```
+
+In development, the **Fake data** badge in the top-right corner switches between the mock and the real API without a restart.
 
 IKEA manual PDFs go in `manuals-src/` (git-ignored; shared in team chat).

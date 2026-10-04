@@ -105,7 +105,11 @@ assembly-studio/
 │   ├── api.ts                            typed fetch wrappers for our 4 routes
 │   ├── api.mock.ts                       same interface, answers from gold fixtures (no AI)
 │   ├── loadManual.ts                     fetch + validate library/manual JSON
+│   ├── partsRequest.ts                   shrinks the parts request to fit the upload size limit
+│   ├── processSteps.ts                   pure helpers for the orchestrator
 │   └── processManual.ts                  the orchestrator: runs the whole upload pipeline
+│
+├── fake-data/                            ← Stand-in data + the fake-data on/off switch       (Smit)
 │
 ├── scene/                                ← 3D, pure logic + R3F components               (Ajit)
 │   ├── geometry.ts                       face normals, face rectangles, projections, bounds

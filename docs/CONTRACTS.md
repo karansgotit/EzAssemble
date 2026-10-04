@@ -466,24 +466,39 @@ export async function cropBox(page: { jpegBase64: string; width: number; height:
 // client/partsRequest.ts
 export async function preparePartsRequest(request: PartsRequest): Promise<PartsRequest>;
 
-// client/api.ts  — real implementation; client/api.mock.ts — same signatures, gold-backed
+// client/api.ts  — real implementation; client/api.mock.ts — same signatures, answers from gold KALLAX
+export type CallOptions = { timeoutMs?: number; signal?: AbortSignal };  // default 60 s; re-analyze passes 20 s; signal cancels
 export interface Api {
-  indexPage(req: IndexPageRequest): Promise<ApiResult<PageIndex>>;
-  parts(req: PartsRequest): Promise<ApiResult<PartsLayout>>;
-  analyzeStep(req: AnalyzeStepRequest): Promise<ApiResult<Step>>;
+  indexPage(req: IndexPageRequest, opts?: CallOptions): Promise<ApiResult<PageIndex>>;
+  parts(req: PartsRequest, opts?: CallOptions): Promise<ApiResult<PartsLayout>>;
+  analyzeStep(req: AnalyzeStepRequest, opts?: CallOptions): Promise<ApiResult<Step>>;
   saveManual(req: SaveManualRequest): Promise<{ ok: boolean; path?: string; error?: string }>;
 }
-export function getApi(): Api;   // returns mock when NEXT_PUBLIC_MOCK_AI === "1"
+export function getApi(): Api;   // returns the mock when fake data is on: NEXT_PUBLIC_MOCK_AI === "1", or the dev badge (fake-data/toggle.ts)
+
+// client/loadManual.ts  — the saved library under public/manuals/, validated with Zod; never throws
+export type Loaded<T> = { ok: true; data: T } | { ok: false; errors: string[] };
+export function loadLibrary(): Promise<Loaded<LibraryIndex>>;
+export function loadManual(id: string): Promise<Loaded<SavedManual>>;
+export function manualBaseUrl(id: string): string;   // "/manuals/<id>/", the cropBaseUrl for buildSceneManual
 
 // client/processManual.ts
 export type ProcessEvent =
   | { type: "stage"; stage: "rasterize" | "index" | "parts" | "steps" | "done"; detail?: string }
   | { type: "progress"; done: number; total: number }
   | { type: "manual"; manual: SavedManual }          // emitted after every finished step (streaming)
-  | { type: "error"; message: string };
+  | { type: "crops"; crops: { name: string; base64: string }[] }   // emitted once, after cropping: "step-NN.jpg" + JPEG, for display and save-manual
+  | { type: "error"; message: string };              // fatal: processManual then rejects with a ProcessError carrying the same message
+export type ProcessOptions = { signal?: AbortSignal; rasterize?: typeof rasterize; cropBox?: typeof cropBox };  // cancel; the other two are for tests
 export async function processManual(input: { file: File; title: string; id: string; productSizeCm: Vec3 },
-  onEvent: (e: ProcessEvent) => void, api?: Api): Promise<SavedManual>;
+  onEvent: (e: ProcessEvent) => void, api?: Api, options?: ProcessOptions): Promise<SavedManual>;
 ```
+
+**Client behaviour** (all in `client/`):
+- `Api` methods never throw. A network error, timeout, cancel, rejected request or malformed response comes back as `ok: false` with readable `errors`.
+- The client retries once after 2 s on a network error or a `5xx`; it never retries `ok: false`, a `4xx` or a timeout.
+- Requests are validated against their request schemas before sending; `/api/parts` requests go through `preparePartsRequest` first.
+- `processManual` keeps going when a page can't be indexed (the page is stored as `{ pageType: "other", steps: [] }` and reported in a `stage` detail) and when a step fails (it becomes a `failed` SavedStep). It stops when the PDF can't be read, no steps are found, the parts call fails, or it is cancelled.
 
 ---
 
